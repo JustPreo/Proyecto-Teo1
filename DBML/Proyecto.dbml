@@ -1,0 +1,159 @@
+Table cliente [headercolor: #175e7a] {
+	cliente_id integer [ pk, increment, not null ]
+	nombre varchar(50)
+}
+
+Table direccion [headercolor: #175e7a] {
+	cliente_id integer [ pk, increment, not null ]
+	numero_direccion integer
+	ciudad varchar(255)
+	calle varchar(255)
+	pais varchar(255)
+}
+
+Table documento [headercolor: #175e7a] {
+	numero_documento integer [ pk, increment, not null ]
+	cliente_id integer [ pk ]
+	fecha timestamp
+	monto decimal
+}
+
+Table factura [headercolor: #175e7a] {
+	numero_documento integer [ pk, increment, not null ]
+	fecha_pago timestamp
+	tipo_factura varchar(50)
+	impuesto decimal
+}
+
+Table usuario [headercolor: #175e7a] {
+	id_usuario integer [ pk, not null ]
+	nombre varchar(50) [ not null ]
+	apellido varchar(50) [ not null ]
+	correo_electronico varchar(100) [ not null, unique ]
+	fecha_registro timestamp [ not null ]
+	salario_base decimal [ not null ]
+	estado boolean [ not null ]
+}
+
+Table presupuesto [headercolor: #175e7a] {
+	id_presupuesto integer [ pk, not null ]
+	id_usuario integer [ not null ]
+	nombre_descriptivo varchar(50) [ not null ]
+	ano_inicio integer [ not null ]
+	mes_inicio smallint [ not null ]
+	ano_fin integer [ not null ]
+	mes_fin smallint [ not null ]
+	total_ingresos decimal [ not null ]
+	total_gastos decimal [ not null ]
+	total_ahorro decimal [ not null ]
+	fecha_hora_creacion timestamp [ not null ]
+	estado_presupuesto smallint [ not null, note: '(1.activo/2.cerrado/3.borrador)' ]
+}
+
+Table categoria [headercolor: #175e7a] {
+	id_categoria integer [ pk, not null ]
+	nombre_categoria varchar(50) [ not null ]
+	descripcion varchar(255)
+	tipo_categoria smallint [ not null, note: '1.ingreso/2.gasto/3.ahorro' ]
+	order_presentacion smallint [ not null ]
+}
+
+Table subcategoria [headercolor: #175e7a] {
+	id_subcategoria integer [ pk, not null ]
+	id_categoria integer [ not null ]
+	nombre varchar(50) [ not null ]
+	descripcion varchar(255)
+	estado boolean [ not null ]
+	default boolean [ not null ]
+}
+
+Table presupuesto_detalle [headercolor: #175e7a] {
+	id_detalle integer [ pk, not null ]
+	id_presupuesto integer [ not null ]
+	id_subcategoria integer [ not null ]
+	monto_mensual decimal [ not null ]
+	justificacion_monto varchar(255)
+}
+
+Table obligacion_fija [headercolor: #175e7a] {
+	id_obligacion integer [ pk, not null ]
+	id_usuario integer [ not null ]
+	id_subcategoria integer [ not null ]
+	nombre varchar(50) [ not null ]
+	descripcion varchar(255)
+	monto_fijo_mensual decimal [ not null ]
+	dia_vencimiento smallint [ not null ]
+	vigente boolean [ not null ]
+	fecha_inicio date [ not null ]
+	fecha_fin date
+}
+
+Table transaccion [headercolor: #175e7a] {
+	id_transaccion integer [ pk, not null ]
+	id_usuario integer [ not null ]
+	id_presupuesto integer [ not null ]
+	id_subcategoria integer [ not null ]
+	id_obligacion integer
+	ano integer [ not null ]
+	mes smallint [ not null ]
+	tipo smallint [ not null ]
+	descripcion varchar(255) [ not null ]
+	monto decimal [ not null ]
+	fecha date [ not null ]
+	metodo_pago varchar(50) [ not null ]
+	numero_factura varchar(50)
+	observaciones varchar(255)
+	fecha_registro timestamp [ not null ]
+}
+
+Ref fk_documento_numero_documento_factura {
+	documento.numero_documento - factura.numero_documento [ delete: no action, update: no action ]
+}
+
+Ref fk_cliente_cliente_id_direccion {
+	cliente.cliente_id - direccion.cliente_id [ delete: no action, update: no action ]
+}
+
+Ref fk_cliente_cliente_id_documento {
+	cliente.cliente_id - documento.cliente_id [ delete: no action, update: no action ]
+}
+
+Ref fk_presupuesto_id_usuario_usuario {
+	presupuesto.id_usuario > usuario.id_usuario [ delete: no action, update: no action ]
+}
+
+Ref fk_subcategoria_id_categoria_categoria {
+	subcategoria.id_categoria > categoria.id_categoria [ delete: no action, update: no action ]
+}
+
+Ref fk_presupuesto_detalle_id_subcategoria_subcategoria {
+	presupuesto_detalle.id_subcategoria > subcategoria.id_subcategoria [ delete: no action, update: no action ]
+}
+
+Ref fk_presupuesto_detalle_id_presupuesto_presupuesto {
+	presupuesto_detalle.id_presupuesto > presupuesto.id_presupuesto [ delete: no action, update: no action ]
+}
+
+Ref fk_obligacion_fija_id_usuario_usuario {
+	obligacion_fija.id_usuario > usuario.id_usuario [ delete: no action, update: no action ]
+}
+
+Ref fk_obligacion_fija_id_subcategoria_subcategoria {
+	obligacion_fija.id_subcategoria > subcategoria.id_subcategoria [ delete: no action, update: no action ]
+}
+
+Ref fk_transaccion_id_usuario_usuario {
+	transaccion.id_usuario > usuario.id_usuario [ delete: no action, update: no action ]
+}
+
+Ref fk_transaccion_id_presupuesto_presupuesto {
+	transaccion.id_presupuesto > presupuesto.id_presupuesto [ delete: no action, update: no action ]
+}
+
+Ref fk_transaccion_id_subcategoria_subcategoria {
+	transaccion.id_subcategoria > subcategoria.id_subcategoria [ delete: no action, update: no action ]
+}
+
+Ref fk_transaccion_id_obligacion_obligacion_fija {
+	transaccion.id_obligacion > obligacion_fija.id_obligacion [ delete: no action, update: no action ]
+}
