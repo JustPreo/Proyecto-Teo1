@@ -11,6 +11,6 @@ package com.aaron.proyectoteo;
 public class ProyectoTeo {
 
     public static void main(String[] args) {
-        System.out.println("Hello World!");
+        new connect().setVisible(true);
     }
 }
