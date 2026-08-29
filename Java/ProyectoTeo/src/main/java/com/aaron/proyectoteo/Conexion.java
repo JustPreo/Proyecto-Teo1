@@ -18,13 +18,13 @@ public final class Conexion {
 
     private Conexion(){}
 
-    public static Connection obenterConexion()throws SQLException
+    public static Connection obtenerConexion()throws SQLException
     {
     return DriverManager.getConnection(URL,user,contra);
     }
 
     public static void verificarConexion()throws SQLException{
-        try (Connection con = obenterConexion()){
+        try (Connection con = obtenerConexion()){
             if(!con.isValid(3)){
                 throw new SQLException("WOMP WOMP");
 

@@ -16,7 +16,7 @@ public class ProyectoTeo {
         try{
         Conexion.verificarConexion();
             System.out.println("Se pudo");
-            PreparedStatement state = Conexion.obenterConexion().prepareStatement("SELECT dbo.fn_calcular_monto_ejecutado" +
+            PreparedStatement state = Conexion.obtenerConexion().prepareStatement("SELECT dbo.fn_calcular_monto_ejecutado" +
                     "(?, ?, ?) AS monto");
             state.setInt(1, 1);
             state.setInt(2, 2);
