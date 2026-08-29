@@ -67,9 +67,12 @@ public class connect extends javax.swing.JFrame {
         Connection con = DriverManager.getConnection(connectionURL,"sa","Clave2026q3");
         
         JOptionPane.showMessageDialog(this, "Conectado brou");
-           }
-        catch(ClassNotFoundException e){} catch (SQLException ex) {
-            System.getLogger(connect.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+         }
+        catch(ClassNotFoundException e){
+            JOptionPane.showMessageDialog(this, e.getMessage());
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage());
+            
         }
     }//GEN-LAST:event_jButton1ActionPerformed
 
