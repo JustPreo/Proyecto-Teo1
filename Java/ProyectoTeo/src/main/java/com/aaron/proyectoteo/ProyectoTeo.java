@@ -14,18 +14,11 @@ public class ProyectoTeo {
 
     public static void main(String[] args) {
         try{
-        Conexion.verificarConexion();
-            System.out.println("Se pudo");
-            PreparedStatement state = Conexion.obtenerConexion().prepareStatement("SELECT dbo.fn_calcular_monto_ejecutado" +
-                    "(?, ?, ?) AS monto");
-            state.setInt(1, 1);
-            state.setInt(2, 2);
-            state.setInt(3, 1);
+            double monto = Funciones.fn_calcular_monto_ejecutado(1, 1, 1);
+            System.out.println(monto);
             
-            try (ResultSet resultado = state.executeQuery()) {
-
-                System.out.println(resultado.next() ? resultado.getBigDecimal("monto"):"a"); 
-            }
+            int cat = Funciones.fn_obtener_categoria_por_subcategoria(0);
+            System.out.println(cat);
                     
         }catch(Exception e){
             System.out.println(e.getMessage());}

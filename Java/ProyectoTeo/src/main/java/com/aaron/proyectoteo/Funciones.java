@@ -41,18 +41,20 @@ public final class Funciones {
     
     
     //fn_calcular_monto_ejecutado(id_subcategoria, anio, mes)
-    public static int fn_calcular_monto_ejecutado(int id_subcategoria, int anio, int mes)throws SQLException{
+    public static double fn_calcular_monto_ejecutado(int id_subcategoria, int anio, int mes)throws SQLException{
         Connection con = Conexion.obtenerConexion();
             
-        PreparedStatement state = con.prepareStatement("SELECT dbo.fn_obtener_categoria_por_subcategoria" +
+        PreparedStatement state = con.prepareStatement("SELECT dbo.fn_calcular_monto_ejecutado" +
                     "(?,?,?) AS monto");
             state.setInt(1, id_subcategoria);
             state.setInt(2, anio);
             state.setInt(3, mes);
             
           try (ResultSet res = state.executeQuery()) {
-                int monto = res.getInt("monto");
-                return monto;
+                if (res.next()) {
+                    return res.getDouble("monto");
+                }
+                return 0.00;
             }
         }
     }
