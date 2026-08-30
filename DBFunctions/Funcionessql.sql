@@ -82,4 +82,88 @@ BEGIN
 END
 
 
+--6 fn_obtener_balance_subcategoria(id_presupuesto, id_subcategoria, anio, mes)
+
+CREATE OR ALTER FUNCTION fn_obtener_balance_subcategoria(@id_presupuesto INT, @id_subcategoria INT, @anio INT , @mes INT)
+RETURNS DECIMAL(12,2)
+AS
+BEGIN
+	DECLARE @gastado DECIMAL(12,2)
+	DECLARE @presupuestoD DECIMAL(12,2)
+	
+	select @presupuestoD = COALESCE(SUM(pd.monto_mensual),0) 
+	from presupuesto_detalle pd
+	where pd.id_subcategoria = @id_subcategoria 
+	and pd.id_presupuesto = @id_presupuesto
+	
+	
+	select @gastado = COALESCE(SUM(t.monto),0) 
+	from transaccion t where
+	t.ano = @anio and t.mes = @mes
+	and t.id_subcategoria = @id_subcategoria
+	and t.id_presupuesto = @id_presupuesto
+	
+	return @presupuestoD - @gastado
+	
+	
+END
+
+
+
+--7 fn_calcular_porcentaje_ejecutado(id_subcategoria, id_presupuesto, anio, mes)
+CREATE OR ALTER FUNCTION fn_calcular_porcentaje_ejecutado(@id_subcategoria INT, @id_presupuesto INT, @anio INT, @mes INT)
+RETURNS DECIMAL(12,2)
+AS
+BEGIN
+	DECLARE @gastado DECIMAL(12,2)
+	DECLARE @presupuestoD DECIMAL(12,2)
+	
+	select @presupuestoD = COALESCE(SUM(pd.monto_mensual),0) 
+	from presupuesto_detalle pd
+	where pd.id_subcategoria = @id_subcategoria 
+	and pd.id_presupuesto = @id_presupuesto
+	
+	
+	select @gastado = COALESCE(SUM(t.monto),0) 
+	from transaccion t where
+	t.ano = @anio and t.mes = @mes
+	and t.id_subcategoria = @id_subcategoria
+	and t.id_presupuesto = @id_presupuesto
+	
+	IF (@presupuestoD != 0)
+		return (@gastado / @presupuestoD)*100
+	return 0
+	
+END
+
+
+
+
+--8 fn_dias_hasta_vencimiento
+
+CREATE OR ALTER FUNCTION fn_dias_hasta_vencimiento(@id_obligacion INT)
+RETURNS INT
+AS
+BEGIN
+	DECLARE @dia_inicio INT
+	DECLARE @ano_inicio INT
+	DECLARE @dia_final INT
+	DECLARE @ano_final INT
+	DECLARE @dias_restantes
+	
+	
+	
+END
+
+
+--9 fn_obtener_promedio_gasto_subcategoria
+
+--10 fn_calcular_proyeccion_gasto_mensual
+
+
+
+
+
+
+
 	

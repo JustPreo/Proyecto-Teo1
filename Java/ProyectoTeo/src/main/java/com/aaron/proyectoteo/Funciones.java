@@ -119,7 +119,45 @@ public final class Funciones {
     
     //6 fn_obtener_balance_subcategoria(id_presupuesto, id_subcategoria, anio, mes)
     
+    public static double fn_obtener_balance_subcategoria(int id_presupuesto ,int id_subcategoria , int anio, int mes ) throws SQLException{
+        
+        Connection con = Conexion.obtenerConexion();
+            
+        PreparedStatement state = con.prepareStatement("SELECT dbo.fn_obtener_balance_subcategoria" +
+                    "(?,?,?,?) AS balance");
+            state.setInt(1, id_presupuesto);
+            state.setInt(2, id_subcategoria);
+            state.setInt(3, anio);
+            state.setInt(4, mes);
+            
+          try (ResultSet res = state.executeQuery()) {
+              if (res.next()){
+                    return res.getDouble("balance");
+              }
+        }
+          return 0;
+    }
+    
+    
     //7 fn_calcular_porcentaje_ejecutado(id_subcategoria, id_presupuesto, anio, mes)
+    public static double fn_calcular_porcentaje_ejecutado(int id_presupuesto ,int id_subcategoria , int anio, int mes ) throws SQLException{
+        
+        Connection con = Conexion.obtenerConexion();
+            
+        PreparedStatement state = con.prepareStatement("SELECT dbo.fn_calcular_porcentaje_ejecutado" +
+                    "(?,?,?,?) AS porcentaje");
+            state.setInt(1, id_presupuesto);
+            state.setInt(2, id_subcategoria);
+            state.setInt(3, anio);
+            state.setInt(4, mes);
+            
+          try (ResultSet res = state.executeQuery()) {
+              if (res.next()){
+                    return res.getDouble("porcentaje");
+              }
+        }
+          return 0;
+    }
     
     //8 fn_dias_hasta_vencimiento(id_obligacion)
     
