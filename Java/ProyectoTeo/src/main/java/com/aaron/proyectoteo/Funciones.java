@@ -5,6 +5,7 @@
 package com.aaron.proyectoteo;
 
 import java.sql.*;
+import java.time.LocalDate;
 
 /**
  *
@@ -16,7 +17,7 @@ public final class Funciones {
     private Funciones(){
     }
     
-    //fn_obtener_categoria_por_subcategoria(id_subcategoria)
+    //1 fn_obtener_categoria_por_subcategoria(id_subcategoria)
     public static int fn_obtener_categoria_por_subcategoria(int id_subcategoria)throws SQLException{
         Connection con = Conexion.obtenerConexion();
             
@@ -40,15 +41,15 @@ public final class Funciones {
     }
     
     
-    //fn_calcular_monto_ejecutado(id_subcategoria, anio, mes)
-    public static double fn_calcular_monto_ejecutado(int id_subcategoria, int anio, int mes)throws SQLException{
+    //2 fn_calcular_monto_ejecutado(id_subcategoria, anio, mes)
+    public static double fn_calcular_monto_ejecutado(int anio, int mes,int id_subcategoria)throws SQLException{
         Connection con = Conexion.obtenerConexion();
             
         PreparedStatement state = con.prepareStatement("SELECT dbo.fn_calcular_monto_ejecutado" +
                     "(?,?,?) AS monto");
-            state.setInt(1, id_subcategoria);
-            state.setInt(2, anio);
-            state.setInt(3, mes);
+            state.setInt(1, anio);
+            state.setInt(2, mes);
+            state.setInt(3, id_subcategoria);
             
           try (ResultSet res = state.executeQuery()) {
                     if (res.next()){
@@ -59,10 +60,25 @@ public final class Funciones {
         }
     
     
-    public static boolean fn_validar_vigencia_presupuesto(){
-    return false;
-    }
+    //3 fn_validar_vigencia_presupuesto
+    public static boolean fn_validar_vigencia_presupuesto(LocalDate fecha,int idPresupuesto)throws SQLException{
+        Connection con = Conexion.obtenerConexion();
+            
+        PreparedStatement state = con.prepareStatement("SELECT dbo.fn_validar_vigencia_presupuesto" +
+                    "(?,?) AS vigencia");
+            state.setDate(1, Date.valueOf(fecha));
+            state.setInt(2, idPresupuesto);
+            
+          try (ResultSet res = state.executeQuery()) {
+              String vig = "N";      
+              if (res.next()){
+                        vig = res.getString("vigencia");
+                    }
+              return "s".equals(vig.toLowerCase());
+            }
+        }
     
+    //4 fn_obtener_total_ejecutado_categoria_mes
     public static double fn_obtener_total_ejecutado_categoria_mes(int id_categoria, int anio, int mes)throws SQLException{//gastado
         
         Connection con = Conexion.obtenerConexion();
@@ -81,7 +97,7 @@ public final class Funciones {
         }
           return 0;
     }
-    
+    //5 fn_obtener_total_categoria_mes
     public static double fn_obtener_total_categoria_mes(int id_categoria ,int id_presupuesto , int anio, int mes ) throws SQLException{//presupuestado
         
         Connection con = Conexion.obtenerConexion();
@@ -100,6 +116,16 @@ public final class Funciones {
         }
           return 0;
     }
+    
+    //6 fn_obtener_balance_subcategoria(id_presupuesto, id_subcategoria, anio, mes)
+    
+    //7 fn_calcular_porcentaje_ejecutado(id_subcategoria, id_presupuesto, anio, mes)
+    
+    //8 fn_dias_hasta_vencimiento(id_obligacion)
+    
+    //9 fn_obtener_promedio_gasto_subcategoria(id_usuario, id_subcategoria, cantidad_meses)
+    
+    //10 fn_calcular_proyeccion_gasto_mensual(id_subcategoria, anio, mes)
     
     
     

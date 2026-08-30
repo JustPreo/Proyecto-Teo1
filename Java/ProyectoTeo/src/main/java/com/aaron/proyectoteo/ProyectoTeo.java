@@ -5,6 +5,7 @@
 package com.aaron.proyectoteo;
 
 import java.sql.*;
+import java.time.LocalDate;
 
 /**
  *
@@ -25,6 +26,8 @@ public class ProyectoTeo {
             System.out.println(monto);
             
 
+            boolean valido = Funciones.fn_validar_vigencia_presupuesto(LocalDate.of(2026, 1, 1),1);
+            System.out.println(valido);
             
             double total1 = Funciones.fn_obtener_total_categoria_mes(1, 1, 1, 1);
             System.out.println(total1);

@@ -27,6 +27,23 @@ CREATE OR ALTER FUNCTION dbo.fn_validar_vigencia_presupuesto(@fecha DATE, @id_pr
 RETURNS VARCHAR(1)
 AS 
 BEGIN
+DECLARE @RESULTADO varchar(1) = 'N'
+DECLARE @anio INT;
+DECLARE @mes INT;
+
+SET @anio = YEAR(@fecha);
+SET @mes = MONTH(@fecha);
+
+if exists (SELECT 1 from presupuesto p
+where @id_presupuesto = p.id_presupuesto and 
+		DATEFROMPARTS(@anio, @mes, 1)
+          BETWEEN DATEFROMPARTS(p.ano_inicio, p.mes_inicio, 1)
+          AND DATEFROMPARTS(p.ano_fin, p.mes_fin, 1))
+          BEGIN
+          SET @RESULTADO = 'S';
+		  END;
+	return @RESULTADO
+
 	
 END;
 
@@ -47,7 +64,7 @@ END
 
 
 
-CREATE OR ALTER FUNCTION dbo.fn_obtener_total_categoria_mes(@id_categoria INT, 
+CREATE OR ALTER FUNCTION dbo.fn_obtener_total_categoria_mes(@id_categoria INT,
 @id_presupuesto INT, @anio INT, @mes INT)
 RETURNS DECIMAL(12,2)
 AS 
