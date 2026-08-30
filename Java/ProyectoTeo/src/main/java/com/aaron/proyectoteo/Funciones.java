@@ -51,11 +51,59 @@ public final class Funciones {
             state.setInt(3, mes);
             
           try (ResultSet res = state.executeQuery()) {
-                if (res.next()) {
-                    return res.getDouble("monto");
-                }
-                return 0.00;
+                    if (res.next()){
+                        return res.getDouble("monto");
+                    }
             }
+          return 0;
         }
+    
+    
+    public static boolean fn_validar_vigencia_presupuesto(){
+    return false;
     }
+    
+    public static double fn_obtener_total_ejecutado_categoria_mes(int id_categoria, int anio, int mes)throws SQLException{//gastado
+        
+        Connection con = Conexion.obtenerConexion();
+            
+        PreparedStatement state = con.prepareStatement("SELECT dbo.fn_obtener_total_ejecutado_categoria_mes" +
+                    "(?,?,?) AS total");
+            state.setInt(1, id_categoria);
+            state.setInt(2, anio);
+            state.setInt(3, mes);
+            
+          try (ResultSet res = state.executeQuery()) {
+              if (res.next()){
+
+                    return res.getDouble("total");
+              }
+        }
+          return 0;
+    }
+    
+    public static double fn_obtener_total_categoria_mes(int id_categoria ,int id_presupuesto , int anio, int mes ) throws SQLException{//presupuestado
+        
+        Connection con = Conexion.obtenerConexion();
+            
+        PreparedStatement state = con.prepareStatement("SELECT dbo.fn_obtener_total_categoria_mes" +
+                    "(?,?,?,?) AS total");
+            state.setInt(1, id_categoria);
+            state.setInt(2, id_presupuesto);
+            state.setInt(3, anio);
+            state.setInt(4, mes);
+            
+          try (ResultSet res = state.executeQuery()) {
+              if (res.next()){
+                    return res.getDouble("total");
+              }
+        }
+          return 0;
+    }
+    
+    
+    
+}
+
+    
    
