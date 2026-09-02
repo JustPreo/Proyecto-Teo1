@@ -1,3 +1,4 @@
+--1
 CREATE OR ALTER FUNCTION dbo.fn_obtener_categoria_por_subcategoria(@id_subcategoria INT)
 RETURNS INT
 AS
@@ -10,7 +11,7 @@ return @id_cat
 END;
 
 
-
+--2
 CREATE OR ALTER FUNCTION dbo.fn_calcular_monto_ejecutado(@anio int ,@mes INT, @id_subcategoria INT)
 RETURNS DECIMAL(12,2)--guardar 2 decimales y 10 numeros grandes osea max 9,999,999,999supongo
 AS
@@ -22,7 +23,7 @@ BEGIN
 END;
 
 
-
+--3
 CREATE OR ALTER FUNCTION dbo.fn_validar_vigencia_presupuesto(@fecha DATE, @id_presupuesto INT)
 RETURNS VARCHAR(1)
 AS 
@@ -47,7 +48,7 @@ where @id_presupuesto = p.id_presupuesto and
 	
 END;
 
-
+--4
 CREATE OR ALTER FUNCTION dbo.fn_obtener_total_ejecutado_categoria_mes(@id_categoria INT, @anio int, @mes INT)
 RETURNS DECIMAL(12,2)
 AS
@@ -84,7 +85,7 @@ END
 
 --6 fn_obtener_balance_subcategoria(id_presupuesto, id_subcategoria, anio, mes)
 
-CREATE OR ALTER FUNCTION fn_obtener_balance_subcategoria(@id_presupuesto INT, @id_subcategoria INT, @anio INT , @mes INT)
+CREATE OR ALTER FUNCTION dbo.fn_obtener_balance_subcategoria(@id_presupuesto INT, @id_subcategoria INT, @anio INT , @mes INT)
 RETURNS DECIMAL(12,2)
 AS
 BEGIN
@@ -111,7 +112,7 @@ END
 
 
 --7 fn_calcular_porcentaje_ejecutado(id_subcategoria, id_presupuesto, anio, mes)
-CREATE OR ALTER FUNCTION fn_calcular_porcentaje_ejecutado(@id_subcategoria INT, @id_presupuesto INT, @anio INT, @mes INT)
+CREATE OR ALTER FUNCTION dbo.fn_calcular_porcentaje_ejecutado(@id_subcategoria INT, @id_presupuesto INT, @anio INT, @mes INT)
 RETURNS DECIMAL(12,2)
 AS
 BEGIN
@@ -141,7 +142,7 @@ END
 
 --8 fn_dias_hasta_vencimiento
 
-CREATE OR ALTER FUNCTION fn_dias_hasta_vencimiento(@id_obligacion INT)
+CREATE OR ALTER FUNCTION dbo.fn_dias_hasta_vencimiento(@id_obligacion INT)
 RETURNS INT
 AS
 BEGIN

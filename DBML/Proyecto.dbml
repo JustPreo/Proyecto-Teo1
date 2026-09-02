@@ -1,57 +1,34 @@
-Table cliente [headercolor: #175e7a] {
-	cliente_id integer [ pk, increment, not null ]
-	nombre varchar(50)
-}
-
-Table direccion [headercolor: #175e7a] {
-	cliente_id integer [ pk, increment, not null ]
-	numero_direccion integer
-	ciudad varchar(255)
-	calle varchar(255)
-	pais varchar(255)
-}
-
-Table documento [headercolor: #175e7a] {
-	numero_documento integer [ pk, increment, not null ]
-	cliente_id integer [ pk ]
-	fecha timestamp
-	monto decimal
-}
-
-Table factura [headercolor: #175e7a] {
-	numero_documento integer [ pk, increment, not null ]
-	fecha_pago timestamp
-	tipo_factura varchar(50)
-	impuesto decimal
-}
-
 Table usuario [headercolor: #175e7a] {
-	id_usuario integer [ pk, not null ]
+	id_usuario integer [ pk, increment, not null ]
 	nombre varchar(50) [ not null ]
 	apellido varchar(50) [ not null ]
 	correo_electronico varchar(100) [ not null, unique ]
-	fecha_registro timestamp [ not null ]
-	salario_base decimal [ not null ]
-	estado boolean [ not null ]
+	fecha_registro datetime2 [ not null, default: `SYSDATETIME()` ]
+	salario_base decimal(12,2) [ not null ]
+	estado bit [ not null, default: 1 ]
+	creado_por varchar(100) [ not null ]
+	modificado_por varchar(100)
+	creado_en datetime2 [ not null, default: `SYSDATETIME()` ]
+	modificado_en datetime2
 }
 
 Table presupuesto [headercolor: #175e7a] {
-	id_presupuesto integer [ pk, not null ]
+	id_presupuesto integer [ pk, increment, not null ]
 	id_usuario integer [ not null ]
 	nombre_descriptivo varchar(50) [ not null ]
 	ano_inicio integer [ not null ]
 	mes_inicio smallint [ not null ]
 	ano_fin integer [ not null ]
 	mes_fin smallint [ not null ]
-	total_ingresos decimal [ not null ]
-	total_gastos decimal [ not null ]
-	total_ahorro decimal [ not null ]
-	fecha_hora_creacion timestamp [ not null ]
-	estado_presupuesto smallint [ not null, note: '(1.activo/2.cerrado/3.borrador)' ]
+	total_ingresos decimal(12,2) [ not null ]
+	total_gastos decimal(12,2) [ not null ]
+	total_ahorro decimal(12,2) [ not null ]
+	fecha_hora_creacion datetime2 [ not null, default: `SYSDATETIME()` ]
+	estado_presupuesto smallint [ not null, default: 1, note: '(1.activo/2.cerrado/3.borrador)' ]
 }
 
 Table categoria [headercolor: #175e7a] {
-	id_categoria integer [ pk, not null ]
+	id_categoria integer [ pk, increment, not null ]
 	nombre_categoria varchar(50) [ not null ]
 	descripcion varchar(255)
 	tipo_categoria smallint [ not null, note: '1.ingreso/2.gasto/3.ahorro' ]
@@ -59,37 +36,45 @@ Table categoria [headercolor: #175e7a] {
 }
 
 Table subcategoria [headercolor: #175e7a] {
-	id_subcategoria integer [ pk, not null ]
+	id_subcategoria integer [ pk, increment, not null ]
 	id_categoria integer [ not null ]
 	nombre varchar(50) [ not null ]
 	descripcion varchar(255)
-	estado boolean [ not null ]
-	default boolean [ not null ]
+	estado bit [ not null, default: 1 ]
+	es_default bit [ not null, default: 0 ]
+
+	indexes {
+		(id_categoria, nombre) [ name: 'subcategoria_index_0', unique ]
+	}
 }
 
 Table presupuesto_detalle [headercolor: #175e7a] {
-	id_detalle integer [ pk, not null ]
+	id_detalle integer [ pk, increment, not null ]
 	id_presupuesto integer [ not null ]
 	id_subcategoria integer [ not null ]
-	monto_mensual decimal [ not null ]
+	monto_mensual decimal(12,2) [ not null ]
 	justificacion_monto varchar(255)
+
+	indexes {
+		(id_presupuesto, id_subcategoria) [ name: 'presupuesto_detalle_index_0', unique ]
+	}
 }
 
 Table obligacion_fija [headercolor: #175e7a] {
-	id_obligacion integer [ pk, not null ]
+	id_obligacion integer [ pk, increment, not null ]
 	id_usuario integer [ not null ]
 	id_subcategoria integer [ not null ]
 	nombre varchar(50) [ not null ]
 	descripcion varchar(255)
-	monto_fijo_mensual decimal [ not null ]
+	monto_fijo_mensual decimal(12,2) [ not null ]
 	dia_vencimiento smallint [ not null ]
-	vigente boolean [ not null ]
+	vigente bit [ not null, default: 1 ]
 	fecha_inicio date [ not null ]
 	fecha_fin date
 }
 
 Table transaccion [headercolor: #175e7a] {
-	id_transaccion integer [ pk, not null ]
+	id_transaccion integer [ pk, increment, not null ]
 	id_usuario integer [ not null ]
 	id_presupuesto integer [ not null ]
 	id_subcategoria integer [ not null ]
@@ -98,24 +83,12 @@ Table transaccion [headercolor: #175e7a] {
 	mes smallint [ not null ]
 	tipo smallint [ not null ]
 	descripcion varchar(255) [ not null ]
-	monto decimal [ not null ]
+	monto decimal(12,2) [ not null ]
 	fecha date [ not null ]
 	metodo_pago varchar(50) [ not null ]
 	numero_factura varchar(50)
 	observaciones varchar(255)
-	fecha_registro timestamp [ not null ]
-}
-
-Ref fk_documento_numero_documento_factura {
-	documento.numero_documento - factura.numero_documento [ delete: no action, update: no action ]
-}
-
-Ref fk_cliente_cliente_id_direccion {
-	cliente.cliente_id - direccion.cliente_id [ delete: no action, update: no action ]
-}
-
-Ref fk_cliente_cliente_id_documento {
-	cliente.cliente_id - documento.cliente_id [ delete: no action, update: no action ]
+	fecha_registro datetime2 [ not null, default: `SYSDATETIME()` ]
 }
 
 Ref fk_presupuesto_id_usuario_usuario {
