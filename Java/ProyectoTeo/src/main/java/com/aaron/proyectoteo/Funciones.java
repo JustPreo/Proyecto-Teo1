@@ -159,11 +159,63 @@ public final class Funciones {
           return 0;
     }
     
-    //8 fn_dias_hasta_vencimiento(id_obligacion)
+    //8 fn_dias_hasta_vencimiento(id_obligacion) int
     
-    //9 fn_obtener_promedio_gasto_subcategoria(id_usuario, id_subcategoria, cantidad_meses)
+    public static int fn_dias_hasta_vencimiento(int id_obligacion) throws SQLException{
+        
+        Connection con = Conexion.obtenerConexion();
+            
+        PreparedStatement state = con.prepareStatement("SELECT dbo.fn_dias_hasta_vencimiento" +
+                    "(?) AS dias");
+            state.setInt(1, id_obligacion);
+            
+          try (ResultSet res = state.executeQuery()) {
+              if (res.next()){
+                    return res.getInt("dias");
+              }
+        }
+          return 0;
+    }
     
-    //10 fn_calcular_proyeccion_gasto_mensual(id_subcategoria, anio, mes)
+    //9 fn_obtener_promedio_gasto_subcategoria(id_usuario, id_subcategoria, cantidad_meses)decimal
+    public static double fn_obtener_promedio_gasto_subcategoria(int id_usuario ,int id_subcategoria , int cantidad_meses) throws SQLException{
+        
+        Connection con = Conexion.obtenerConexion();
+            
+        PreparedStatement state = con.prepareStatement("SELECT dbo.fn_obtener_promedio_gasto_subcategoria" +
+                    "(?,?,?) AS promedio");
+            state.setInt(1, id_usuario);
+            state.setInt(2, id_subcategoria);
+            state.setInt(3, cantidad_meses);
+            
+          try (ResultSet res = state.executeQuery()) {
+              if (res.next()){
+                    return res.getDouble("promedio");
+              }
+        }
+          return 0;
+    }
+    
+    
+    //10 fn_calcular_proyeccion_gasto_mensual(id_subcategoria, anio, mes)decimal
+    
+    public static double fn_calcular_proyeccion_gasto_mensual(int id_subcategoria ,int anio , int mes) throws SQLException{
+        
+        Connection con = Conexion.obtenerConexion();
+            
+        PreparedStatement state = con.prepareStatement("SELECT dbo.fn_calcular_proyeccion_gasto_mensual" +
+                    "(?,?,?) AS proyeccion");
+            state.setInt(1, id_subcategoria);
+            state.setInt(2, anio);
+            state.setInt(3, mes);
+            
+          try (ResultSet res = state.executeQuery()) {
+              if (res.next()){
+                    return res.getDouble("proyeccion");
+              }
+        }
+          return 0;
+    }
     
     
     
