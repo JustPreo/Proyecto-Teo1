@@ -85,7 +85,8 @@ END
 
 --6 fn_obtener_balance_subcategoria(id_presupuesto, id_subcategoria, anio, mes)
 
-CREATE OR ALTER FUNCTION dbo.fn_obtener_balance_subcategoria(@id_presupuesto INT, @id_subcategoria INT, @anio INT , @mes INT)
+CREATE OR ALTER FUNCTION dbo.fn_obtener_balance_subcategoria(@id_presupuesto INT, 
+@id_subcategoria INT, @anio INT , @mes INT)
 RETURNS DECIMAL(12,2)
 AS
 BEGIN

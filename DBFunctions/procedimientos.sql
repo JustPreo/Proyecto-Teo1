@@ -1,3 +1,5 @@
+--USUARIO
+-------------------------------------------------------------------------
 CREATE OR ALTER PROCEDURE dbo.sp_insertar_usuario
     @nombre VARCHAR(50),
     @apellido VARCHAR(50),
@@ -72,6 +74,7 @@ BEGIN
     ORDER BY nombre, apellido;
 END
 
+--CATEGORIA
 -------------------------------------------------------------------------
 
 CREATE OR ALTER PROCEDURE dbo.sp_insertar_categoria
@@ -168,7 +171,6 @@ END;
 
 CREATE OR ALTER PROCEDURE dbo.sp_listar_categorias
     @tipo_categoria SMALLINT = NULL
-    --tipo tendria que ser algo como if not null entonces esto y si es null entonces retornar todas
 AS
 BEGIN
 	
@@ -179,9 +181,126 @@ BEGIN
 END
 
 
+--SUBCATEGORIA
+-------------------------------------------------------------------------
+CREATE OR ALTER PROCEDURE dbo.sp_insertar_subcategoria
+    @id_categoria INT,@nombre VARCHAR(50),
+    @descripcion VARCHAR(255),@creado_por VARCHAR(100)
+AS
+BEGIN
+
+    IF NOT EXISTS (SELECT 1 FROM categoria WHERE id_categoria = @id_categoria)
+        THROW 50010, 'La categoria seleccionada no existe', 1;
+
+    IF EXISTS (SELECT 1 FROM subcategoria WHERE id_categoria = @id_categoria AND nombre = @nombre)
+        THROW 50011, 'Ya existe una subcategoria con ese nombre', 1;
+
+    INSERT INTO subcategoria (id_categoria,nombre,descripcion,estado,es_default,creado_por)
+    VALUES (@id_categoria,@nombre,@descripcion,1,0,@creado_por);
+END;
 
 
 
+
+CREATE OR ALTER PROCEDURE dbo.sp_actualizar_subcategoria
+    @id_subcategoria INT,
+    @nombre VARCHAR(50),
+    @descripcion VARCHAR(255),
+    @estado BIT,
+    @modificado_por VARCHAR(100)
+AS
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM subcategoria WHERE id_subcategoria = @id_subcategoria)
+        THROW 50012, 'La subcategoria no existe', 1;
+
+    IF EXISTS (SELECT 1 FROM subcategoria sub1 INNER JOIN subcategoria sub2 ON sub1.id_categoria = sub2.id_categoria
+        WHERE sub1.id_subcategoria = @id_subcategoria AND sub2.nombre = @nombre AND sub2.id_subcategoria != @id_subcategoria)
+        THROW 50013, 'Ya existe una subcategoria con ese nombre', 1;
+
+    UPDATE subcategoria SET 
+    	nombre = @nombre,
+        descripcion = @descripcion,
+        estado = @estado,
+        modificado_por = @modificado_por,
+        modificado_en = SYSDATETIME()
+    WHERE id_subcategoria = @id_subcategoria;
+END;
+
+
+
+CREATE OR ALTER PROCEDURE dbo.sp_eliminar_subcategoria
+    @id_subcategoria INT
+AS
+BEGIN
+
+    IF NOT EXISTS (SELECT 1 FROM subcategoria WHERE id_subcategoria = @id_subcategoria)
+        THROW 50014, 'La subcategoria no existe', 1;
+
+    IF EXISTS (SELECT 1 FROM subcategoria WHERE id_subcategoria = @id_subcategoria AND es_default = 1)
+        THROW 50015, 'No se puede eliminar la subcategoria default', 1;
+
+    IF EXISTS (SELECT 1 FROM presupuesto_detalle WHERE @id_subcategoria = id_subcategoria)
+        THROW 50016, 'La subcategoria esta siendo usada en un "presupuesto"', 1;
+
+    IF EXISTS (SELECT 1 FROM transaccion WHERE id_subcategoria = @id_subcategoria)
+        THROW 50017, 'La subcategoria esta siendo usada en "transacciones"', 1;
+
+    IF EXISTS (SELECT 1 FROM obligacion_fija WHERE id_subcategoria = @id_subcategoria)
+        THROW 50018, 'La subcategoria esta siendo usada en "obligaciones"', 1;
+
+    DELETE FROM subcategoria WHERE id_subcategoria = @id_subcategoria;
+END;
+
+
+
+
+CREATE OR ALTER PROCEDURE dbo.sp_consultar_subcategoria @id_subcategoria INT
+AS
+BEGIN
+    SELECT
+        sub.id_subcategoria,
+        sub.nombre AS nombre_subcategoria,
+        sub.descripcion,
+        sub.estado,
+        sub.es_default,
+        c.id_categoria,
+        c.nombre_categoria,
+        c.tipo_categoria,
+        sub.creado_por,
+        sub.modificado_por,
+        sub.creado_en,
+        sub.modificado_en
+    FROM subcategoria sub
+    INNER JOIN categoria c
+        ON sub.id_categoria = c.id_categoria
+    WHERE sub.id_subcategoria = @id_subcategoria;
+END;
+
+CREATE OR ALTER PROCEDURE dbo.sp_listar_subcategorias_por_categoria
+    @id_categoria INT
+AS
+BEGIN
+
+    IF NOT EXISTS (SELECT 1 FROM categoria WHERE id_categoria = @id_categoria)
+        THROW 50019, 'La caegoria no existe', 1;
+
+    SELECT * FROM subcategoria sub WHERE sub.id_categoria = @id_categoria
+END;
+
+
+
+
+--PRESUPUESTO
+-------------------------------------------------------------------------
+
+--PRESUPUESTO_DETALLE
+-------------------------------------------------------------------------
+
+--OBLIGACION_FIJA
+-------------------------------------------------------------------------
+
+--TRANSACCION
+-------------------------------------------------------------------------
 
 
 
