@@ -228,6 +228,7 @@ END;
 
 
 
+
 CREATE OR ALTER PROCEDURE dbo.sp_eliminar_subcategoria
     @id_subcategoria INT
 AS
@@ -276,6 +277,9 @@ BEGIN
     WHERE sub.id_subcategoria = @id_subcategoria;
 END;
 
+
+
+
 CREATE OR ALTER PROCEDURE dbo.sp_listar_subcategorias_por_categoria
     @id_categoria INT
 AS
@@ -292,6 +296,183 @@ END;
 
 --PRESUPUESTO
 -------------------------------------------------------------------------
+CREATE OR ALTER PROCEDURE dbo.sp_insertar_presupuesto
+    @id_usuario INT,@nombre VARCHAR(50),
+    @ano_inicio INT,@mes_inicio SMALLINT,
+    @ano_fin INT,@mes_fin SMALLINT,
+    @total_ingresos DECIMAL(12,2),@total_gastos DECIMAL(12,2),
+    @total_ahorro DECIMAL(12,2),@creado_por VARCHAR(100)
+AS
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM usuario WHERE id_usuario = @id_usuario AND estado = 1)
+        THROW 50020, 'El usuario no existe', 1;
+
+    IF (DATEFROMPARTS(@ano_fin, @mes_fin, 1)< DATEFROMPARTS(@ano_inicio, @mes_inicio, 1))
+        THROW 50021, 'La fecha final no puede ser anterior a la inicial', 1;
+
+    IF (@total_ingresos < 0 OR @total_gastos < 0 OR @total_ahorro < 0)
+        THROW 50022, 'Los montos no pueden ser negativos', 1;
+
+    INSERT INTO presupuesto (
+        id_usuario,
+        nombre_descriptivo,
+        ano_inicio,
+        mes_inicio,
+        ano_fin,
+        mes_fin,
+        total_ingresos,
+        total_gastos,
+        total_ahorro,
+        estado_presupuesto,
+        creado_por
+    )
+    VALUES (
+        @id_usuario,
+        @nombre,
+        @ano_inicio,
+        @mes_inicio,
+        @ano_fin,
+        @mes_fin,
+        @total_ingresos,
+        @total_gastos,
+        @total_ahorro,
+        1,
+        @creado_por
+    );
+END;
+
+
+
+
+CREATE OR ALTER PROCEDURE dbo.sp_actualizar_presupuesto
+    @id_presupuesto INT,@nombre VARCHAR(50),
+    @ano_inicio INT,@mes_inicio SMALLINT,
+    @ano_fin INT,@mes_fin SMALLINT,
+    @total_ingresos DECIMAL(12,2),@total_gastos DECIMAL(12,2),
+    @total_ahorro DECIMAL(12,2),@estado_presupuesto SMALLINT,
+    @modificado_por VARCHAR(100)
+AS
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM presupuesto WHERE id_presupuesto = @id_presupuesto)
+        THROW 50023, 'El presupuesto no existe', 1;
+
+    IF (DATEFROMPARTS(@ano_fin, @mes_fin, 1)< DATEFROMPARTS(@ano_inicio, @mes_inicio, 1))
+        THROW 50024, 'La fecha final no puede ser anterior a la inicial', 1;
+
+    IF @estado_presupuesto NOT IN (1,2,3)
+        THROW 50025, 'El estado debe ser 1 2 o 3', 1;
+
+    IF @total_ingresos < 0 OR @total_gastos < 0 OR @total_ahorro < 0
+        THROW 50026, 'Los montos no pueden ser negativos', 1;
+
+    UPDATE presupuesto
+    SET nombre_descriptivo = @nombre,
+        ano_inicio = @ano_inicio,
+        mes_inicio = @mes_inicio,
+        ano_fin = @ano_fin,
+        mes_fin = @mes_fin,
+        total_ingresos = @total_ingresos,
+        total_gastos = @total_gastos,
+        total_ahorro = @total_ahorro,
+        estado_presupuesto = @estado_presupuesto,
+        modificado_por = @modificado_por,
+        modificado_en = SYSDATETIME()
+    WHERE id_presupuesto = @id_presupuesto;
+END;
+
+
+
+
+CREATE OR ALTER PROCEDURE dbo.sp_eliminar_presupuesto
+    @id_presupuesto INT
+AS
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM presupuesto WHERE id_presupuesto = @id_presupuesto)
+        THROW 50027, 'No existe esepresupuesto', 1;
+
+    IF EXISTS (SELECT 1 FROM transaccion WHERE id_presupuesto = @id_presupuesto)
+        THROW 50028, 'El presupuesto esta siendo utilizado en "Transaccion"', 1;
+
+        DELETE FROM presupuesto_detalle
+        WHERE id_presupuesto = @id_presupuesto;
+
+        DELETE FROM presupuesto
+        WHERE id_presupuesto = @id_presupuesto;
+END;
+
+
+CREATE OR ALTER PROCEDURE dbo.sp_consultar_presupuesto
+    @id_presupuesto INT
+AS
+BEGIN
+    SELECT
+        p.id_presupuesto,
+        p.id_usuario,
+        u.nombre,
+        u.apellido,
+        p.nombre_descriptivo,
+        p.ano_inicio,
+        p.mes_inicio,
+        DATEFROMPARTS(p.ano_inicio,p.mes_inicio,1) AS fecha_inicio,
+        p.ano_fin,
+        p.mes_fin,
+        EOMONTH(DATEFROMPARTS(p.ano_fin,p.mes_fin,1)) AS fecha_fin,
+        p.total_ingresos,
+        p.total_gastos,
+        p.total_ahorro,
+        p.estado_presupuesto,
+        (CASE p.estado_presupuesto
+            WHEN 1 THEN 'Activo'
+            WHEN 2 THEN 'Cerrado'
+            WHEN 3 THEN 'Borrador'
+        END)AS nombre_estado,
+        p.fecha_hora_creacion,
+        p.creado_por,
+        p.modificado_por,
+        p.creado_en,
+        p.modificado_en
+    FROM presupuesto p
+    INNER JOIN usuario u
+        ON p.id_usuario = u.id_usuario
+    WHERE p.id_presupuesto = @id_presupuesto;
+END;
+
+
+
+
+CREATE OR ALTER PROCEDURE dbo.sp_listar_presupuestos_usuario
+    @id_usuario INT,
+    @estado_presupuesto SMALLINT = NULL
+AS
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM usuario WHERE id_usuario = @id_usuario)
+        THROW 50029, 'El usuario no existe', 1;
+
+    IF @estado_presupuesto IS NOT NULL AND @estado_presupuesto NOT IN (1,2,3)
+        THROW 50030, 'El estado debe ser 1 2 o 3', 1;
+
+    SELECT
+        p.id_presupuesto,
+        p.nombre_descriptivo,
+        DATEFROMPARTS(p.ano_inicio,p.mes_inicio,1) AS fecha_inicio,
+        EOMONTH(DATEFROMPARTS(p.ano_fin,p.mes_fin,1)) AS fecha_fin,
+        p.total_ingresos,
+        p.total_gastos,
+        p.total_ahorro,
+        p.estado_presupuesto,
+        (CASE p.estado_presupuesto
+            WHEN 1 THEN 'Activo'
+            WHEN 2 THEN 'Cerrado'
+            WHEN 3 THEN 'Borrador'
+        END) AS nombre_estado
+    FROM presupuesto p
+    WHERE p.id_usuario = @id_usuario
+      AND (@estado_presupuesto IS NULL OR p.estado_presupuesto = @estado_presupuesto)
+      
+      --maybe despues agregar algun order by)?
+END;
+
+
 
 --PRESUPUESTO_DETALLE
 -------------------------------------------------------------------------
