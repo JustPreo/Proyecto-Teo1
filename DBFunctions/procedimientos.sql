@@ -8,6 +8,14 @@ CREATE OR ALTER PROCEDURE dbo.sp_insertar_usuario
     @creado_por VARCHAR(100)
 AS
 BEGIN
+	
+	
+	IF EXISTS (SELECT 1 FROM usuario WHERE correo_electronico = @correo_electronico)
+        THROW 50079, 'Ya existe un usuario con ese correo electronico', 1;
+
+    IF (@salario_base < 0)
+        THROW 50080, 'El salario base no puede ser negativo', 1
+	
 	 INSERT INTO usuario
     (nombre,apellido,
      correo_electronico,salario_base,
@@ -31,8 +39,21 @@ CREATE OR ALTER PROCEDURE dbo.sp_actualizar_usuario
     @modificado_por VARCHAR(100)
 AS
 BEGIN
-	--revisar que correo no exista  y ver si existe usuario/activo
-	--ahi poner algo como not exists y asi
+
+	IF NOT EXISTS (SELECT 1 FROM usuario WHERE id_usuario = @id_usuario)
+        THROW 50081, 'El usuario no existe', 1;
+
+    IF EXISTS (SELECT 1 FROM usuario WHERE id_usuario = @id_usuario AND estado = 0)
+        THROW 50082, 'El usuario esta inactivo', 1;
+
+    IF EXISTS (SELECT 1 FROM usuario
+               WHERE correo_electronico = @correo_electronico
+                 AND id_usuario != @id_usuario)
+        THROW 50083, 'Ya existe otro usuario con ese correo electronico', 1;
+
+    IF (@salario_base < 0)
+        THROW 50084, 'El salario base no puede ser negativo', 1;
+	
 	UPDATE usuario
     SET nombre = @nombre,
         apellido = @apellido,
@@ -50,7 +71,13 @@ CREATE OR ALTER PROCEDURE dbo.sp_eliminar_usuario
     @id_usuario INT,@modificado_por VARCHAR(100)
 AS
 BEGIN
-	--despues hacer verificacion si existe y si ya fue eliminado o no
+	IF NOT EXISTS (SELECT 1 FROM usuario WHERE id_usuario = @id_usuario)
+        THROW 50085, 'El usuario no existe', 1;
+
+    IF EXISTS (SELECT 1 FROM usuario WHERE id_usuario = @id_usuario AND estado = 0)
+        THROW 50086, 'El usuario ya esta inactivo', 1;
+    
+    
 	 UPDATE usuario
     SET estado = 0,modificado_por = @modificado_por,
     modificado_en = SYSDATETIME()
@@ -62,16 +89,47 @@ CREATE OR ALTER PROCEDURE dbo.sp_consultar_usuario
     @id_usuario INT
 AS
 BEGIN
-	SELECT * FROM usuario
-	WHERE @id_usuario = id_usuario
+	
+	IF NOT EXISTS (SELECT 1 FROM usuario WHERE id_usuario = @id_usuario)
+        THROW 50087, 'El usuario no existe', 1;
+
+	
+	SELECT
+        u.id_usuario,
+        u.nombre,
+        u.apellido,
+        u.correo_electronico,
+        u.fecha_registro,
+        u.salario_base,
+        u.estado,
+        (CASE u.estado 
+        WHEN 1 THEN 'Activo' 
+        ELSE 'Inactive' END) AS nombre_estado,
+        u.creado_por,
+        u.modificado_por,
+        u.creado_en,
+        u.modificado_en
+    FROM usuario u
+    WHERE u.id_usuario = @id_usuario;
 END
 
 
 CREATE OR ALTER PROCEDURE dbo.sp_listar_usuarios
 AS
 BEGIN
-	SELECT * FROM usuario
-    ORDER BY nombre, apellido;
+	SELECT
+        u.id_usuario,
+        u.nombre,
+        u.apellido,
+        u.correo_electronico,
+        u.fecha_registro,
+        u.salario_base,
+        u.estado,
+        (CASE u.estado 
+        WHEN 1 THEN 'Activo' 
+        ELSE 'Inactivo' END) AS nombre_estado
+    FROM usuario u
+    ORDER BY u.nombre, u.apellido;
 END
 
 --CATEGORIA
@@ -85,7 +143,11 @@ CREATE OR ALTER PROCEDURE dbo.sp_insertar_categoria
     @creado_por VARCHAR(100)
 AS
 BEGIN
-
+	
+	
+	IF (@tipo_categoria NOT IN (1,2,3))
+        THROW 50088, 'El tipo de categoria debe ser 1, 2 o 3', 1;
+	
 	if(@order_presentacion < 0)
 		THROW 50001, 'El orden de presentacion no puede ser negativo',1;
 	
@@ -108,25 +170,48 @@ END;
 
 
 
-CREATE OR ALTER PROCEDURE dbo.sp_actualizar_categoria
-    @id_categoria INT,@nombre_categoria VARCHAR(50),
-    @descripcion VARCHAR(255),@modificado_por VARCHAR(100)
+CREATE OR ALTER PROCEDURE dbo.sp_actualizar_subcategoria
+    @id_subcategoria INT,@nombre VARCHAR(50),
+    @descripcion VARCHAR(255),@estado BIT,
+    @modificado_por VARCHAR(100)
 AS
 BEGIN
-	if not exists(select 1 from categoria where @id_categoria = id_categoria)
-		throw 50003,'La categoria no existe',1;
-	if exists(select 1 from categoria where nombre_categoria = @nombre_categoria and id_categoria != @id_categoria)
-		throw 50004,'Ya existe una categoria con ese nombre',1;
+    DECLARE @id_categoria INT, 
+	@es_default BIT;
 
-	UPDATE categoria set 
-		nombre_categoria = @nombre_categoria,
-		descripcion = @descripcion,
-		modificado_por = @modificado_por,
-		modificado_en = SYSDATETIME()
-	WHERE id_categoria = @id_categoria
-	
-	
+    IF NOT EXISTS (SELECT 1 FROM subcategoria WHERE id_subcategoria = @id_subcategoria)
+        THROW 50012, 'La subcategoria no existe', 1;
 
+    SELECT @id_categoria = id_categoria,
+           @es_default   = es_default
+    FROM subcategoria
+    WHERE id_subcategoria = @id_subcategoria;
+
+    IF EXISTS (SELECT 1 FROM subcategoria
+               WHERE id_categoria = @id_categoria
+                 AND nombre = @nombre
+                 AND id_subcategoria != @id_subcategoria)
+        THROW 50013, 'Ya existe una subcategoria con ese nombre', 1;
+
+    IF (@estado = 0)
+	    BEGIN
+	        IF (@es_default = 1)
+	            THROW 50090, 'No se puede desactivar la subcategoria por defecto', 1;
+	
+	        IF NOT EXISTS (SELECT 1 FROM subcategoria
+	                       WHERE id_categoria = @id_categoria
+	                         AND estado = 1
+	                         AND id_subcategoria != @id_subcategoria)
+	            THROW 50091, 'La categoria debe tener al menos una subcategoria activa', 1;
+	    END
+
+    UPDATE subcategoria
+    SET nombre         = @nombre,
+        descripcion    = @descripcion,
+        estado         = @estado,
+        modificado_por = @modificado_por,
+        modificado_en  = SYSDATETIME()
+    WHERE id_subcategoria = @id_subcategoria;
 END;
 
 
@@ -309,15 +394,35 @@ CREATE OR ALTER PROCEDURE dbo.sp_insertar_presupuesto
     @total_ahorro DECIMAL(12,2),@creado_por VARCHAR(100)
 AS
 BEGIN
+	DECLARE @inicio DATE,
+			@fin DATE
     IF NOT EXISTS (SELECT 1 FROM usuario WHERE id_usuario = @id_usuario AND estado = 1)
         THROW 50020, 'El usuario no existe', 1;
 
+
+	IF (@mes_inicio NOT BETWEEN 1 AND 12 OR @mes_fin NOT BETWEEN 1 AND 12)
+        THROW 50092, 'Los meses deben estar entre 1 y 12',1;
+	
+	SET @inicio = DATEFROMPARTS(@ano_inicio, @mes_inicio,1);
+    SET @fin    = DATEFROMPARTS(@ano_fin,@mes_fin,1);
+	
     IF (DATEFROMPARTS(@ano_fin, @mes_fin, 1)< DATEFROMPARTS(@ano_inicio, @mes_inicio, 1))
         THROW 50021, 'La fecha final no puede ser anterior a la inicial', 1;
 
     IF (@total_ingresos < 0 OR @total_gastos < 0 OR @total_ahorro < 0)
         THROW 50022, 'Los montos no pueden ser negativos', 1;
 
+     IF EXISTS (SELECT 1
+               FROM presupuesto p
+               WHERE p.id_usuario = @id_usuario
+                 AND p.estado_presupuesto = 1
+                 AND @inicio <= DATEFROMPARTS(p.ano_fin,    p.mes_fin,    1)
+                 AND @fin    >= DATEFROMPARTS(p.ano_inicio, p.mes_inicio, 1))
+        THROW 50093, 'Ya existe un presupuesto activo que se solapa con ese periodo', 1;
+
+    IF (@total_ingresos < @total_gastos + @total_ahorro)
+        THROW 50094, 'Los ingresos presupuestados deben cubrir gastos mas ahorros', 1;
+    
     INSERT INTO presupuesto (
         id_usuario,
         nombre_descriptivo,
@@ -350,38 +455,83 @@ END;
 
 
 CREATE OR ALTER PROCEDURE dbo.sp_actualizar_presupuesto
-    @id_presupuesto INT,@nombre VARCHAR(50),
-    @ano_inicio INT,@mes_inicio SMALLINT,
-    @ano_fin INT,@mes_fin SMALLINT,
-    @total_ingresos DECIMAL(12,2),@total_gastos DECIMAL(12,2),
-    @total_ahorro DECIMAL(12,2),@estado_presupuesto SMALLINT,
+    @id_presupuesto INT,
+    @nombre VARCHAR(50),
+    @ano_inicio INT,
+    @mes_inicio SMALLINT,
+    @ano_fin INT,
+    @mes_fin SMALLINT,
+    @total_ingresos DECIMAL(12,2),
+    @total_gastos DECIMAL(12,2),
+    @total_ahorro DECIMAL(12,2),
+    @estado_presupuesto SMALLINT,
     @modificado_por VARCHAR(100)
 AS
 BEGIN
+    DECLARE @id_usuario INT, 
+	@estado_actual SMALLINT, 
+	@inicio DATE, 
+	@fin DATE;
+
     IF NOT EXISTS (SELECT 1 FROM presupuesto WHERE id_presupuesto = @id_presupuesto)
         THROW 50023, 'El presupuesto no existe', 1;
 
-    IF (DATEFROMPARTS(@ano_fin, @mes_fin, 1)< DATEFROMPARTS(@ano_inicio, @mes_inicio, 1))
+    SELECT @id_usuario    = id_usuario,
+           @estado_actual = estado_presupuesto
+    FROM presupuesto
+    WHERE id_presupuesto = @id_presupuesto;
+
+    IF (@estado_actual = 2)
+        THROW 50095, 'No se puede modificar un presupuesto cerrado', 1;
+
+    IF (@mes_inicio NOT BETWEEN 1 AND 12 OR @mes_fin NOT BETWEEN 1 AND 12)
+        THROW 50096, 'Los meses deben estar entre 1 y 12', 1;
+
+    SET @inicio = DATEFROMPARTS(@ano_inicio, @mes_inicio, 1);
+    SET @fin    = DATEFROMPARTS(@ano_fin,@mes_fin,1);
+
+    IF (@fin < @inicio)
         THROW 50024, 'La fecha final no puede ser anterior a la inicial', 1;
 
-    IF @estado_presupuesto NOT IN (1,2,3)
+    IF (@estado_presupuesto NOT IN (1,2,3))
         THROW 50025, 'El estado debe ser 1 2 o 3', 1;
 
-    IF @total_ingresos < 0 OR @total_gastos < 0 OR @total_ahorro < 0
+    IF (@total_ingresos < 0 OR @total_gastos < 0 OR @total_ahorro < 0)
         THROW 50026, 'Los montos no pueden ser negativos', 1;
 
+    IF EXISTS (SELECT 1
+               FROM transaccion t
+               WHERE t.id_presupuesto = @id_presupuesto
+                 AND (t.fecha < @inicio
+                      OR t.fecha > EOMONTH(@fin)
+                      OR DATEFROMPARTS(t.ano, t.mes, 1) < @inicio
+                      OR DATEFROMPARTS(t.ano, t.mes, 1) > @fin))
+        THROW 50097, 'Existen transacciones fuera del nuevo periodo de vigencia', 1;
+
+    IF (@estado_presupuesto = 1)
+	    BEGIN
+	        IF EXISTS (SELECT 1
+	                   FROM presupuesto p
+	                   WHERE p.id_usuario = @id_usuario
+	                     AND p.id_presupuesto != @id_presupuesto
+	                     AND p.estado_presupuesto = 1
+	                     AND @inicio <= DATEFROMPARTS(p.ano_fin,    p.mes_fin,    1)
+	                     AND @fin    >= DATEFROMPARTS(p.ano_inicio, p.mes_inicio, 1))
+	            THROW 50098, 'Ya existe otro presupuesto activo que coincide con ese periodo', 1;
+	    END
+
     UPDATE presupuesto
-    SET nombre_descriptivo = @nombre,
-        ano_inicio = @ano_inicio,
-        mes_inicio = @mes_inicio,
-        ano_fin = @ano_fin,
-        mes_fin = @mes_fin,
-        total_ingresos = @total_ingresos,
-        total_gastos = @total_gastos,
-        total_ahorro = @total_ahorro,
-        estado_presupuesto = @estado_presupuesto,
-        modificado_por = @modificado_por,
-        modificado_en = SYSDATETIME()
+    SET nombre_descriptivo  = @nombre,
+        ano_inicio          = @ano_inicio,
+        mes_inicio          = @mes_inicio,
+        ano_fin             = @ano_fin,
+        mes_fin             = @mes_fin,
+        total_ingresos      = @total_ingresos,
+        total_gastos        = @total_gastos,
+        total_ahorro        = @total_ahorro,
+        estado_presupuesto  = @estado_presupuesto,
+        modificado_por      = @modificado_por,
+        modificado_en       = SYSDATETIME()
     WHERE id_presupuesto = @id_presupuesto;
 END;
 
