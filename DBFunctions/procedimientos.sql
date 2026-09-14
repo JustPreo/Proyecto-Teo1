@@ -1,3 +1,6 @@
+--REVISAR DESPUES LA COMPATIBILIDAD CON JAVA , PORFAVOR AARON DEL FUTURO
+--PROBAR TODO BIEN XD
+
 --USUARIO
 -------------------------------------------------------------------------
 CREATE OR ALTER PROCEDURE dbo.sp_insertar_usuario

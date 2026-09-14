@@ -17,13 +17,16 @@ public class usuario {//Crearlo por ahora , despues miro su utilidad
             String correo_electronico;
             double salario_base;
             private LocalDateTime fecha_registro;
+            boolean estado;
             
-    public void usuario(int id_usuario,String nombre , String apellido , String correo_electronico , double salario_base , LocalDateTime fecha_registro){
+    public void usuario(int id_usuario,String nombre , String apellido , String correo_electronico , double salario_base , LocalDateTime fecha_registro,
+            boolean estado){
     this.nombre = nombre;
     this.apellido = apellido;
     this.correo_electronico = correo_electronico;
     this.salario_base = salario_base;
     this.fecha_registro = fecha_registro;
+    this.estado = estado;
     }//Creacion del user (maybe al seleccionar(?
     
     
