@@ -94,24 +94,13 @@ public class subcategoriaCRUD {
     }
 
     public ArrayList<subcategoria> listarTodas() throws SQLException {
-        Connection con = Conexion.obtenerConexion();
-        PreparedStatement state = con.prepareStatement("SELECT id_subcategoria, id_categoria, nombre, descripcion, estado, es_default FROM subcategoria WHERE estado = 1 ORDER BY nombre");
-        ResultSet res = state.executeQuery();
+        categoriaCRUD cCrud = new categoriaCRUD();
+        ArrayList<com.aaron.proyectoteo.categoria> categorias = cCrud.listar(null);
         ArrayList<subcategoria> lista = new ArrayList<>();
-
-        while (res.next()) {
-            subcategoria s = new subcategoria();
-            s.id_subcategoria = res.getInt("id_subcategoria");
-            s.id_categoria = res.getInt("id_categoria");
-            s.nombre = res.getString("nombre");
-            s.descripcion = res.getString("descripcion");
-            s.estado = res.getBoolean("estado");
-            s.es_default = res.getBoolean("es_default");
-            lista.add(s);
+        for (com.aaron.proyectoteo.categoria c : categorias) {
+            ArrayList<subcategoria> subs = listarPorCategoria(c.id_categoria);
+            lista.addAll(subs);
         }
-
-        res.close();
-        state.close();
         return lista;
     }
 }

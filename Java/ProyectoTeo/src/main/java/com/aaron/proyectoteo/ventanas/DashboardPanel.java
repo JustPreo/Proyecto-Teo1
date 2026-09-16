@@ -92,7 +92,7 @@ public class DashboardPanel extends JPanel {
         UITheme.styleTable(tblTransacciones);
         JScrollPane scrollTrans = new JScrollPane(tblTransacciones);
         scrollTrans.setBorder(BorderFactory.createEmptyBorder());
-        scrollTrans.getViewport().setBackground(Color.WHITE);
+        scrollTrans.getViewport().setBackground(UITheme.CARD_BG);
         pnlTrans.add(scrollTrans, BorderLayout.CENTER);
 
         // Right Table: Próximas obligaciones a vencer
@@ -117,7 +117,7 @@ public class DashboardPanel extends JPanel {
         UITheme.styleTable(tblObligaciones);
         JScrollPane scrollOblig = new JScrollPane(tblObligaciones);
         scrollOblig.setBorder(BorderFactory.createEmptyBorder());
-        scrollOblig.getViewport().setBackground(Color.WHITE);
+        scrollOblig.getViewport().setBackground(UITheme.CARD_BG);
         pnlOblig.add(scrollOblig, BorderLayout.CENTER);
 
         tablesPanel.add(pnlTrans);
@@ -139,26 +139,24 @@ public class DashboardPanel extends JPanel {
         double balanceFinal = 0;
 
         try {
-            // Calcular balance mensual con SQL
+            // Calcular balance mensual mediante stored procedure
             Connection con = com.aaron.proyectoteo.Conexion.obtenerConexion();
-            PreparedStatement ps = con.prepareStatement(
-                "SELECT " +
-                "COALESCE(SUM(CASE WHEN tipo = 1 THEN monto ELSE 0 END), 0) AS total_ingresos, " +
-                "COALESCE(SUM(CASE WHEN tipo = 2 THEN monto ELSE 0 END), 0) AS total_gastos, " +
-                "COALESCE(SUM(CASE WHEN tipo = 3 THEN monto ELSE 0 END), 0) AS total_ahorros " +
-                "FROM transaccion WHERE ano = ? AND mes = ?"
-            );
-            ps.setInt(1, anio);
-            ps.setInt(2, mes);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                totalIngresos = rs.getDouble("total_ingresos");
-                totalGastos = rs.getDouble("total_gastos");
-                totalAhorros = rs.getDouble("total_ahorros");
-                balanceFinal = totalIngresos - totalGastos - totalAhorros;
-            }
-            rs.close();
-            ps.close();
+            java.sql.CallableStatement cs = con.prepareCall("{CALL dbo.sp_calcular_balance_mensual(?,?,?,?,?,?,?,?)}");
+            cs.setInt(1, currentUserId);
+            cs.setInt(2, currentPresupuestoId);
+            cs.setInt(3, anio);
+            cs.setInt(4, mes);
+            cs.registerOutParameter(5, java.sql.Types.DECIMAL);
+            cs.registerOutParameter(6, java.sql.Types.DECIMAL);
+            cs.registerOutParameter(7, java.sql.Types.DECIMAL);
+            cs.registerOutParameter(8, java.sql.Types.DECIMAL);
+            cs.execute();
+
+            totalIngresos = cs.getDouble(5);
+            totalGastos = cs.getDouble(6);
+            totalAhorros = cs.getDouble(7);
+            balanceFinal = cs.getDouble(8);
+            cs.close();
         } catch (Exception e) {
             // Defaults 0
         }
@@ -172,27 +170,25 @@ public class DashboardPanel extends JPanel {
         cardsPanel.revalidate();
         cardsPanel.repaint();
 
-        // Cargar Últimas Transacciones
+        // Cargar Últimas Transacciones mediante stored procedure
         modelTransacciones.setRowCount(0);
         try {
-            Connection con = com.aaron.proyectoteo.Conexion.obtenerConexion();
-            PreparedStatement ps = con.prepareStatement("SELECT TOP 10 fecha, tipo, descripcion, monto, metodo_pago FROM transaccion ORDER BY id_transaccion DESC");
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                short tipo = rs.getShort("tipo");
-                String tipoStr = tipo == 1 ? "Ingreso" : (tipo == 2 ? "Gasto" : "Ahorro");
+            transaccionCRUD tCrud = new transaccionCRUD();
+            ArrayList<transaccion> lista = tCrud.listarPorPresupuesto(currentPresupuestoId, null, null, null, null);
+            int count = 0;
+            for (transaccion t : lista) {
+                if (count++ >= 10) break;
+                String tipoStr = t.tipo == 1 ? "Ingreso" : (t.tipo == 2 ? "Gasto" : "Ahorro");
                 modelTransacciones.addRow(new Object[]{
-                    rs.getDate("fecha"),
+                    t.fecha,
                     tipoStr,
-                    rs.getString("descripcion"),
-                    String.format("L %.2f", rs.getDouble("monto")),
-                    rs.getString("metodo_pago")
+                    t.descripcion,
+                    String.format("L %.2f", t.monto),
+                    t.metodo_pago
                 });
             }
-            rs.close();
-            ps.close();
         } catch (Exception e) {
-            // Ignorar si aún no hay conexión
+            // Ignorar si aún no hay datos
         }
 
         // Cargar Obligaciones por Vencer

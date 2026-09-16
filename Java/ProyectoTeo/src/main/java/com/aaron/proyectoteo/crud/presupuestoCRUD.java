@@ -118,29 +118,7 @@ public class presupuestoCRUD {
     }
 
     public ArrayList<presupuesto> listarTodos() throws SQLException {
-        Connection con = Conexion.obtenerConexion();
-        PreparedStatement state = con.prepareStatement("SELECT id_presupuesto, id_usuario, nombre_descriptivo, ano_inicio, mes_inicio, ano_fin, mes_fin, total_ingresos, total_gastos, total_ahorro, estado_presupuesto FROM presupuesto ORDER BY id_presupuesto DESC");
-        ResultSet res = state.executeQuery();
-        ArrayList<presupuesto> lista = new ArrayList<>();
-
-        while (res.next()) {
-            presupuesto p = new presupuesto();
-            p.id_presupuesto = res.getInt("id_presupuesto");
-            p.id_usuario = res.getInt("id_usuario");
-            p.nombre_descriptivo = res.getString("nombre_descriptivo");
-            p.ano_inicio = res.getInt("ano_inicio");
-            p.mes_inicio = res.getInt("mes_inicio");
-            p.ano_fin = res.getInt("ano_fin");
-            p.mes_fin = res.getInt("mes_fin");
-            p.total_ingresos = res.getDouble("total_ingresos");
-            p.total_gastos = res.getDouble("total_gastos");
-            p.total_ahorro = res.getDouble("total_ahorro");
-            p.estado_presupuesto = res.getShort("estado_presupuesto");
-            lista.add(p);
-        }
-
-        res.close();
-        state.close();
-        return lista;
+        // Obtenemos los presupuestos llamando al procedure oficial del usuario (admin id=1)
+        return listarPorUsuario(1, null);
     }
 }

@@ -88,28 +88,28 @@ public class PresupuestosPanel extends JPanel {
         lblTotalIngresos.setForeground(UITheme.SUCCESS);
         lblTotalIngresos.setBorder(BorderFactory.createLineBorder(UITheme.BORDER_COLOR, 1, true));
         lblTotalIngresos.setOpaque(true);
-        lblTotalIngresos.setBackground(Color.WHITE);
+        lblTotalIngresos.setBackground(UITheme.CARD_BG);
 
         lblTotalGastos = new JLabel("Gastos: L 0.00", JLabel.CENTER);
         lblTotalGastos.setFont(UITheme.FONT_BOLD);
         lblTotalGastos.setForeground(UITheme.DANGER);
         lblTotalGastos.setBorder(BorderFactory.createLineBorder(UITheme.BORDER_COLOR, 1, true));
         lblTotalGastos.setOpaque(true);
-        lblTotalGastos.setBackground(Color.WHITE);
+        lblTotalGastos.setBackground(UITheme.CARD_BG);
 
         lblTotalAhorro = new JLabel("Ahorro: L 0.00", JLabel.CENTER);
         lblTotalAhorro.setFont(UITheme.FONT_BOLD);
         lblTotalAhorro.setForeground(UITheme.PURPLE);
         lblTotalAhorro.setBorder(BorderFactory.createLineBorder(UITheme.BORDER_COLOR, 1, true));
         lblTotalAhorro.setOpaque(true);
-        lblTotalAhorro.setBackground(Color.WHITE);
+        lblTotalAhorro.setBackground(UITheme.CARD_BG);
 
         lblEstado = new JLabel("Estado: -", JLabel.CENTER);
         lblEstado.setFont(UITheme.FONT_BOLD);
         lblEstado.setForeground(UITheme.PRIMARY);
         lblEstado.setBorder(BorderFactory.createLineBorder(UITheme.BORDER_COLOR, 1, true));
         lblEstado.setOpaque(true);
-        lblEstado.setBackground(Color.WHITE);
+        lblEstado.setBackground(UITheme.CARD_BG);
 
         summaryPanel.add(lblTotalIngresos);
         summaryPanel.add(lblTotalGastos);
@@ -140,7 +140,7 @@ public class PresupuestosPanel extends JPanel {
         UITheme.styleTable(tblDetalles);
         JScrollPane scroll = new JScrollPane(tblDetalles);
         scroll.setBorder(BorderFactory.createEmptyBorder());
-        scroll.getViewport().setBackground(Color.WHITE);
+        scroll.getViewport().setBackground(UITheme.CARD_BG);
         tableContainer.add(scroll, BorderLayout.CENTER);
 
         centerPanel.add(tableContainer, BorderLayout.CENTER);
@@ -175,26 +175,16 @@ public class PresupuestosPanel extends JPanel {
         String st = p.estado_presupuesto == 1 ? "Activo" : (p.estado_presupuesto == 2 ? "Cerrado" : "Borrador");
         lblEstado.setText("Estado: " + st);
 
-        // Cargar detalles
+        // Cargar detalles usando el stored procedure
         modelDetalles.setRowCount(0);
         try {
-            Connection con = com.aaron.proyectoteo.Conexion.obtenerConexion();
-            PreparedStatement ps = con.prepareStatement(
-                "SELECT pd.id_detalle, pd.id_subcategoria, s.nombre AS sub_nombre, pd.monto_mensual, pd.justificacion_monto " +
-                "FROM presupuesto_detalle pd " +
-                "INNER JOIN subcategoria s ON pd.id_subcategoria = s.id_subcategoria " +
-                "WHERE pd.id_presupuesto = ?"
-            );
-            ps.setInt(1, p.id_presupuesto);
-            ResultSet rs = ps.executeQuery();
-            LocalDate now = LocalDate.now();
-
-            while (rs.next()) {
-                int idDetalle = rs.getInt("id_detalle");
-                int idSub = rs.getInt("id_subcategoria");
-                String subNombre = rs.getString("sub_nombre");
-                double montoPres = rs.getDouble("monto_mensual");
-                String just = rs.getString("justificacion_monto");
+            ArrayList<presupuesto_detalle> lista = pdCrud.listarPorPresupuesto(p.id_presupuesto);
+            for (presupuesto_detalle pd : lista) {
+                int idDetalle = pd.id_presupuesto_detalle;
+                int idSub = pd.id_subcategoria;
+                String subNombre = pd.nombre_subcategoria != null ? pd.nombre_subcategoria : ("Sub #" + idSub);
+                double montoPres = pd.monto_mensual;
+                String just = pd.observaciones;
 
                 double montoEjec = Funciones.fn_calcular_monto_ejecutado(p.ano_inicio, p.mes_inicio, idSub);
                 double balance = Funciones.fn_obtener_balance_subcategoria(p.id_presupuesto, idSub, p.ano_inicio, p.mes_inicio);
@@ -210,8 +200,6 @@ public class PresupuestosPanel extends JPanel {
                     just != null ? just : ""
                 });
             }
-            rs.close();
-            ps.close();
         } catch (Exception e) {
             // Ignorar
         }
@@ -340,11 +328,20 @@ public class PresupuestosPanel extends JPanel {
         int opt = JOptionPane.showConfirmDialog(this, "¿Estás seguro de cerrar el presupuesto '" + p.nombre_descriptivo + "'?", "Confirmar Cierre", JOptionPane.YES_NO_OPTION);
         if (opt == JOptionPane.YES_OPTION) {
             try {
-                Connection con = com.aaron.proyectoteo.Conexion.obtenerConexion();
-                PreparedStatement ps = con.prepareStatement("UPDATE presupuesto SET estado_presupuesto = 2, modificado_por = 'Admin', modificado_en = SYSDATETIME() WHERE id_presupuesto = ?");
-                ps.setInt(1, p.id_presupuesto);
-                ps.executeUpdate();
-                ps.close();
+                // Cerramos usando el procedure oficial de actualizar presupuesto con estado 2
+                pCrud.sp_actualizar_presupuesto(
+                    p.id_presupuesto,
+                    p.nombre_descriptivo,
+                    p.ano_inicio,
+                    (short) p.mes_inicio,
+                    p.ano_fin,
+                    (short) p.mes_fin,
+                    p.total_ingresos,
+                    p.total_gastos,
+                    p.total_ahorro,
+                    (short) 2, // Estado cerrado
+                    "Admin"
+                );
                 JOptionPane.showMessageDialog(this, "Presupuesto cerrado con éxito");
                 cargarPresupuestos();
             } catch (Exception ex) {

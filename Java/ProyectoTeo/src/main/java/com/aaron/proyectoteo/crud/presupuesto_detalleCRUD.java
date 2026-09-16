@@ -58,6 +58,7 @@ public class presupuesto_detalleCRUD {
             pd.id_presupuesto_detalle = res.getInt("id_detalle");
             pd.id_presupuesto = res.getInt("id_presupuesto");
             pd.id_subcategoria = res.getInt("id_subcategoria");
+            pd.nombre_subcategoria = res.getString("nombre_subcategoria");
             pd.monto_mensual = res.getDouble("monto_mensual");
             pd.observaciones = res.getString("justificacion_monto");
             lista.add(pd);

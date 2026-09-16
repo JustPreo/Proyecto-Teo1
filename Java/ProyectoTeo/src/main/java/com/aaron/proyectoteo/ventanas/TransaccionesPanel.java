@@ -93,7 +93,7 @@ public class TransaccionesPanel extends JPanel {
         UITheme.styleTable(tblTransacciones);
         JScrollPane scroll = new JScrollPane(tblTransacciones);
         scroll.setBorder(BorderFactory.createEmptyBorder());
-        scroll.getViewport().setBackground(Color.WHITE);
+        scroll.getViewport().setBackground(UITheme.CARD_BG);
         tableContainer.add(scroll, BorderLayout.CENTER);
 
         add(tableContainer, BorderLayout.CENTER);
@@ -125,36 +125,23 @@ public class TransaccionesPanel extends JPanel {
 
         modelTransacciones.setRowCount(0);
         try {
-            Connection con = com.aaron.proyectoteo.Conexion.obtenerConexion();
-            String sql = "SELECT t.id_transaccion, t.fecha, t.ano, t.mes, t.tipo, s.nombre AS sub_nombre, t.descripcion, t.monto, t.metodo_pago, t.numero_factura " +
-                         "FROM transaccion t " +
-                         "INNER JOIN subcategoria s ON t.id_subcategoria = s.id_subcategoria " +
-                         "WHERE t.id_presupuesto = ? " +
-                         (tipo != null ? "AND t.tipo = ? " : "") +
-                         "ORDER BY t.fecha DESC, t.id_transaccion DESC";
-            PreparedStatement ps = con.prepareStatement(sql);
-            ps.setInt(1, p.id_presupuesto);
-            if (tipo != null) ps.setShort(2, tipo);
-
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                short tp = rs.getShort("tipo");
-                String tpStr = tp == 1 ? "Ingreso" : (tp == 2 ? "Gasto" : "Ahorro");
+            // Llamada exclusiva a sp_listar_transacciones_presupuesto vía DAO
+            ArrayList<transaccion> lista = tCrud.listarPorPresupuesto(p.id_presupuesto, tipo, null, null, null);
+            for (transaccion t : lista) {
+                String tpStr = t.tipo == 1 ? "Ingreso" : (t.tipo == 2 ? "Gasto" : "Ahorro");
 
                 modelTransacciones.addRow(new Object[]{
-                    rs.getInt("id_transaccion"),
-                    rs.getDate("fecha"),
-                    rs.getInt("mes") + "/" + rs.getInt("ano"),
+                    t.id_transaccion,
+                    t.fecha,
+                    t.mes + "/" + t.anio,
                     tpStr,
-                    rs.getString("sub_nombre"),
-                    rs.getString("descripcion"),
-                    String.format("L %.2f", rs.getDouble("monto")),
-                    rs.getString("metodo_pago"),
-                    rs.getString("numero_factura") != null ? rs.getString("numero_factura") : "-"
+                    "Sub #" + t.id_subcategoria,
+                    t.descripcion,
+                    String.format("L %.2f", t.monto),
+                    t.metodo_pago,
+                    t.numero_factura != null ? t.numero_factura : "-"
                 });
             }
-            rs.close();
-            ps.close();
         } catch (Exception e) {
             // Ignorar
         }

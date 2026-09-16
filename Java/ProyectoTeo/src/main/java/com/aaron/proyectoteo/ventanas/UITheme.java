@@ -11,23 +11,23 @@ import javax.swing.table.JTableHeader;
 
 public class UITheme {
 
-    // Colors
-    public static final Color SIDEBAR_BG = new Color(24, 32, 47);          // Dark slate #18202F
-    public static final Color SIDEBAR_HOVER = new Color(38, 49, 70);       // #263146
-    public static final Color SIDEBAR_ACTIVE = new Color(37, 99, 235);     // Blue #2563EB
-    public static final Color CONTENT_BG = new Color(243, 244, 246);       // Light gray #F3F4F6
-    public static final Color CARD_BG = Color.WHITE;
-    public static final Color BORDER_COLOR = new Color(229, 231, 235);     // #E5E7EB
-    public static final Color TEXT_PRIMARY = new Color(17, 24, 39);        // Dark #111827
-    public static final Color TEXT_SECONDARY = new Color(107, 114, 128);   // Gray #6B7280
-    public static final Color TEXT_LIGHT = new Color(209, 213, 219);       // Light gray #D1D5DB
+    // Colors (Dark Mode Theme)
+    public static final Color SIDEBAR_BG = new Color(15, 23, 42);          // Deep dark slate #0F172A
+    public static final Color SIDEBAR_HOVER = new Color(30, 41, 59);       // Slate 800 #1E293B
+    public static final Color SIDEBAR_ACTIVE = new Color(59, 130, 246);     // Bright blue #3B82F6
+    public static final Color CONTENT_BG = new Color(2, 6, 23);            // Ultra dark #020617
+    public static final Color CARD_BG = new Color(15, 23, 42);             // Card dark #0F172A
+    public static final Color BORDER_COLOR = new Color(51, 65, 85);        // Slate 700 #334155
+    public static final Color TEXT_PRIMARY = new Color(248, 250, 252);     // Almost white #F8FAFC
+    public static final Color TEXT_SECONDARY = new Color(148, 163, 184);   // Slate 400 #94A3B8
+    public static final Color TEXT_LIGHT = new Color(226, 232, 240);       // Slate 200 #E2E8F0
     
     // Accents
-    public static final Color SUCCESS = new Color(16, 185, 129);           // Green #10B981
-    public static final Color DANGER = new Color(239, 68, 68);             // Red #EF4444
-    public static final Color PRIMARY = new Color(37, 99, 235);            // Blue #2563EB
-    public static final Color WARNING = new Color(245, 158, 11);           // Amber #F59E0B
-    public static final Color PURPLE = new Color(139, 92, 246);            // Purple #8B5CF6
+    public static final Color SUCCESS = new Color(52, 211, 153);           // Emerald 400 #34D399
+    public static final Color DANGER = new Color(248, 113, 113);           // Red 400 #F87171
+    public static final Color PRIMARY = new Color(59, 130, 246);           // Blue 500 #3B82F6
+    public static final Color WARNING = new Color(251, 191, 36);           // Amber 400 #FBBF24
+    public static final Color PURPLE = new Color(167, 139, 250);           // Violet 400 #A78BFA
 
     // Fonts
     public static final Font FONT_TITLE = new Font("Segoe UI", Font.BOLD, 22);
@@ -105,7 +105,7 @@ public class UITheme {
         JButton btn = new JButton(text);
         btn.setFont(FONT_BOLD);
         btn.setForeground(TEXT_PRIMARY);
-        btn.setBackground(Color.WHITE);
+        btn.setBackground(new Color(30, 41, 59)); // Dark slate 800
         btn.setFocusPainted(false);
         btn.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(BORDER_COLOR, 1, true),
@@ -115,11 +115,11 @@ public class UITheme {
         btn.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
-                btn.setBackground(new Color(243, 244, 246));
+                btn.setBackground(new Color(51, 65, 85)); // Slate 700
             }
             @Override
             public void mouseExited(MouseEvent e) {
-                btn.setBackground(Color.WHITE);
+                btn.setBackground(new Color(30, 41, 59));
             }
         });
         return btn;
@@ -128,19 +128,23 @@ public class UITheme {
     public static void styleTable(JTable table) {
         table.setFont(FONT_REGULAR);
         table.setRowHeight(32);
+        table.setBackground(CARD_BG);
+        table.setForeground(TEXT_PRIMARY);
         table.setShowGrid(true);
-        table.setGridColor(new Color(243, 244, 246));
-        table.setSelectionBackground(new Color(224, 231, 255));
-        table.setSelectionForeground(TEXT_PRIMARY);
+        table.setGridColor(new Color(30, 41, 59));
+        table.setSelectionBackground(new Color(30, 58, 138)); // Deep blue selection
+        table.setSelectionForeground(Color.WHITE);
 
         JTableHeader header = table.getTableHeader();
         header.setFont(FONT_BOLD);
-        header.setBackground(new Color(249, 250, 251));
-        header.setForeground(TEXT_SECONDARY);
+        header.setBackground(new Color(30, 41, 59));
+        header.setForeground(TEXT_PRIMARY);
         header.setPreferredSize(new Dimension(header.getWidth(), 36));
         header.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, BORDER_COLOR));
 
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(JLabel.CENTER);
+        centerRenderer.setBackground(CARD_BG);
+        centerRenderer.setForeground(TEXT_PRIMARY);
     }
 }

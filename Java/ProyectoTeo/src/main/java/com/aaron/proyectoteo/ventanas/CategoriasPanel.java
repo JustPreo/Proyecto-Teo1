@@ -83,7 +83,7 @@ public class CategoriasPanel extends JPanel {
         });
         JScrollPane scrollCat = new JScrollPane(tblCategorias);
         scrollCat.setBorder(BorderFactory.createEmptyBorder());
-        scrollCat.getViewport().setBackground(Color.WHITE);
+        scrollCat.getViewport().setBackground(UITheme.CARD_BG);
         pnlCat.add(scrollCat, BorderLayout.CENTER);
 
         // Right Table: Subcategorías
@@ -108,7 +108,7 @@ public class CategoriasPanel extends JPanel {
         UITheme.styleTable(tblSubcategorias);
         JScrollPane scrollSub = new JScrollPane(tblSubcategorias);
         scrollSub.setBorder(BorderFactory.createEmptyBorder());
-        scrollSub.getViewport().setBackground(Color.WHITE);
+        scrollSub.getViewport().setBackground(UITheme.CARD_BG);
         pnlSub.add(scrollSub, BorderLayout.CENTER);
 
         centerPanel.add(pnlCat);

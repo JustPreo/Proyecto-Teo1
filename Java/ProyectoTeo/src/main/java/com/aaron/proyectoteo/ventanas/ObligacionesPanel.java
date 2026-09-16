@@ -81,7 +81,7 @@ public class ObligacionesPanel extends JPanel {
         UITheme.styleTable(tblObligaciones);
         JScrollPane scroll = new JScrollPane(tblObligaciones);
         scroll.setBorder(BorderFactory.createEmptyBorder());
-        scroll.getViewport().setBackground(Color.WHITE);
+        scroll.getViewport().setBackground(UITheme.CARD_BG);
         tableContainer.add(scroll, BorderLayout.CENTER);
 
         add(tableContainer, BorderLayout.CENTER);

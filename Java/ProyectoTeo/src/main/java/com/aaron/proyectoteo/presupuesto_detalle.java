@@ -13,6 +13,7 @@ public class presupuesto_detalle {
     public int id_presupuesto_detalle;
     public int id_presupuesto;
     public int id_subcategoria;
+    public String nombre_subcategoria;
     public double monto_mensual;
     public String observaciones;
 
