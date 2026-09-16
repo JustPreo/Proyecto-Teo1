@@ -117,6 +117,7 @@ BEGIN
 END
 
 
+
 CREATE OR ALTER PROCEDURE dbo.sp_listar_usuarios
 AS
 BEGIN
@@ -157,7 +158,7 @@ BEGIN
 	if exists(select 1 from categoria where nombre_categoria = @nombre_categoria and tipo_categoria = @tipo_categoria)
 		throw 50002,'Ya existe una categoria con ese nombre y tipo',1;
 	
-	insert into categoria (nombre_categoria,
+	insert into categoria(nombre_categoria,
 	descripcion,
 	tipo_categoria,
 	order_presentacion,
@@ -173,48 +174,37 @@ END;
 
 
 
-CREATE OR ALTER PROCEDURE dbo.sp_actualizar_subcategoria
-    @id_subcategoria INT,@nombre VARCHAR(50),
-    @descripcion VARCHAR(255),@estado BIT,
-    @modificado_por VARCHAR(100)
+
+CREATE OR ALTER PROCEDURE dbo.sp_actualizar_categoria
+    @id_categoria INT,@nombre_categoria VARCHAR(50),
+    @descripcion VARCHAR(255),@tipo_categoria SMALLINT,
+    @order_presentacion SMALLINT,@modificado_por VARCHAR(100)
 AS
 BEGIN
-    DECLARE @id_categoria INT, 
-	@es_default BIT;
+    IF NOT EXISTS (SELECT 1 FROM categoria WHERE id_categoria = @id_categoria)
+        THROW 50100, 'La categoria no existe', 1;
 
-    IF NOT EXISTS (SELECT 1 FROM subcategoria WHERE id_subcategoria = @id_subcategoria)
-        THROW 50012, 'La subcategoria no existe', 1;
+    IF (@tipo_categoria NOT IN (1,2,3))
+        THROW 50003, 'El tipo de categoria debe ser 1, 2 o 3', 1;
 
-    SELECT @id_categoria = id_categoria,
-           @es_default   = es_default
-    FROM subcategoria
-    WHERE id_subcategoria = @id_subcategoria;
+    IF (@order_presentacion < 0)
+        THROW 50004, 'El orden de presentacion no puede ser negativo', 1;
 
-    IF EXISTS (SELECT 1 FROM subcategoria
-               WHERE id_categoria = @id_categoria
-                 AND nombre = @nombre
-                 AND id_subcategoria != @id_subcategoria)
-        THROW 50013, 'Ya existe una subcategoria con ese nombre', 1;
+    IF EXISTS (SELECT 1 FROM categoria
+               WHERE nombre_categoria = @nombre_categoria
+                 AND tipo_categoria   = @tipo_categoria
+                 AND id_categoria    != @id_categoria)
+        THROW 50103, 'Ya existe una categoria con ese nombre y tipo', 1;
 
-    IF (@estado = 0)
-	    BEGIN
-	        IF (@es_default = 1)
-	            THROW 50090, 'No se puede desactivar la subcategoria por defecto', 1;
-	
-	        IF NOT EXISTS (SELECT 1 FROM subcategoria
-	                       WHERE id_categoria = @id_categoria
-	                         AND estado = 1
-	                         AND id_subcategoria != @id_subcategoria)
-	            THROW 50091, 'La categoria debe tener al menos una subcategoria activa', 1;
-	    END
-
-    UPDATE subcategoria
-    SET nombre         = @nombre,
-        descripcion    = @descripcion,
-        estado         = @estado,
-        modificado_por = @modificado_por,
-        modificado_en  = SYSDATETIME()
-    WHERE id_subcategoria = @id_subcategoria;
+    
+    UPDATE categoria
+    SET nombre_categoria   = @nombre_categoria,
+        descripcion        = @descripcion,
+        tipo_categoria     = @tipo_categoria,
+        order_presentacion = @order_presentacion,
+        modificado_por     = @modificado_por,
+        modificado_en      = SYSDATETIME()
+    WHERE id_categoria = @id_categoria;
 END;
 
 
@@ -1213,6 +1203,8 @@ BEGIN
       AND (@mes IS NULL OR t.mes = @mes)
     ORDER BY t.fecha DESC, t.id_transaccion DESC;
 END;
+
+
 
 
 

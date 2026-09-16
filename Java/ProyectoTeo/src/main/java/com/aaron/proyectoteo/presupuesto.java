@@ -32,6 +32,6 @@ public class presupuesto {
     this.mes_fin = mes_fin;
     this.total_ingresos = total_ingresos;
     this.total_gastos = total_gastos;
-    this.total_ahorro = total_ahorro;    
+    this.total_ahorro = total_ahorro;
     }
 }
