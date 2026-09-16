@@ -19,11 +19,7 @@ BEGIN
         1,
         1,
         creado_por
-    FROM categoria
-    WHERE id_categoria = (
-        SELECT MAX(id_categoria)
-        FROM categoria
-    );
-    --en teoria deberia funcionar porque agarra la ultima categoria
+    FROM inserted
+    --me salvo la vida un hindu
 
 END;
