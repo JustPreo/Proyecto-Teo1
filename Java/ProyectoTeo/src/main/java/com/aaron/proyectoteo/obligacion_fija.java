@@ -23,6 +23,8 @@ public class obligacion_fija {
     public LocalDate fecha_inicio;
     public LocalDate fecha_fin;
 
+    public obligacion_fija() {}
+
     public obligacion_fija(int id_obligacion,
                            int id_usuario,
                            int id_subcategoria,

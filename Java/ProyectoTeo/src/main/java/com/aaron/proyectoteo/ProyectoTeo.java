@@ -14,37 +14,22 @@ import java.time.LocalDate;
 public class ProyectoTeo {
 
     public static void main(String[] args) {
-        try{
+        try {
+            // Intentar verificar conexion en consola
             Conexion.verificarConexion();
-            
-            
-            int cat = Funciones.fn_obtener_categoria_por_subcategoria(1);
-            System.out.println(cat);
-            
-            
-            double monto = Funciones.fn_calcular_monto_ejecutado(1, 1, 1);
-            System.out.println(monto);
-            
+            System.out.println("Conexión a SQL Server exitosa.");
+        } catch (Exception e) {
+            System.err.println("Advertencia DB: " + e.getMessage());
+        }
 
-            boolean valido = Funciones.fn_validar_vigencia_presupuesto(LocalDate.of(2026, 1, 1),1);
-            System.out.println(valido);
-            
-            double total2 = Funciones.fn_obtener_total_ejecutado_categoria_mes(1, 1, 1);
-            System.out.println(total2);            
-            
-            double total1 = Funciones.fn_obtener_total_categoria_mes(1, 1, 1, 1);
-            System.out.println(total1);
-            
-            double total3 = Funciones.fn_obtener_categoria_por_subcategoria(1);
-            System.out.println(total3);
-            
-            double total4 = Funciones.fn_obtener_balance_subcategoria(1, 1, 1, 1);
-            System.out.println(total4);
+        // Iniciar interfaz gráfica Swing
+        try {
+            javax.swing.UIManager.setLookAndFeel(javax.swing.UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception ignored) {}
 
-                    
-        }catch(Exception e){
-            System.out.println(e.getMessage());}
-        
+        javax.swing.SwingUtilities.invokeLater(() -> {
+            new com.aaron.proyectoteo.ventanas.MainFrame().setVisible(true);
+        });
     }
     
     

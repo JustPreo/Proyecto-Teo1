@@ -9,21 +9,26 @@ package com.aaron.proyectoteo;
  * @author aaron
  */
 public class subcategoria {
-    int id_subcategoria;
-    int id_categoria;
-    String nombre;
-    String descripcion;
-    boolean estado;
-    boolean es_default;
-    
+    public int id_subcategoria;
+    public int id_categoria;
+    public String nombre;
+    public String descripcion;
+    public boolean estado;
+    public boolean es_default;
 
+    public subcategoria() {}
 
-    public void subcategoria(int id_subcategoria,int id_categoria,String nombre,String descripcion,boolean estado,boolean es_default){
-    this.id_subcategoria = id_subcategoria;
-    this.id_categoria = id_categoria;
-    this.nombre = nombre;
-    this.descripcion = descripcion;
-    this.estado = estado;
-    this.es_default = es_default;
+    public subcategoria(int id_subcategoria, int id_categoria, String nombre, String descripcion, boolean estado, boolean es_default) {
+        this.id_subcategoria = id_subcategoria;
+        this.id_categoria = id_categoria;
+        this.nombre = nombre;
+        this.descripcion = descripcion;
+        this.estado = estado;
+        this.es_default = es_default;
+    }
+
+    @Override
+    public String toString() {
+        return nombre;
     }
 }
