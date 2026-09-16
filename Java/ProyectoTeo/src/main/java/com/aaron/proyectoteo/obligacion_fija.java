@@ -12,16 +12,16 @@ import java.time.LocalDate;
  */
 public class obligacion_fija {
 
-    int id_obligacion;
-    int id_usuario;
-    int id_subcategoria;
-    String nombre;
-    String descripcion;
-    double monto_mensual;
-    int dia_vencimiento;
-    boolean estado;
-    LocalDate fecha_inicio;
-    LocalDate fecha_fin;
+    public int id_obligacion;
+    public int id_usuario;
+    public int id_subcategoria;
+    public String nombre;
+    public String descripcion;
+    public double monto_mensual;
+    public int dia_vencimiento;
+    public boolean estado;
+    public LocalDate fecha_inicio;
+    public LocalDate fecha_fin;
 
     public obligacion_fija(int id_obligacion,
                            int id_usuario,

@@ -9,11 +9,11 @@ package com.aaron.proyectoteo;
  * @author aaron
  */
 public class categoria {
-    int id_categoria;
-    String nombre_categoria;
-    String descripcion;
-    short tipo_categoria;
-    short order_presentacion;
+    public int id_categoria;
+    public String nombre_categoria;
+    public String descripcion;
+    public short tipo_categoria;
+    public short order_presentacion;
     
     public void categoria (int id_categoria,String nombre_categoria,String descripcion,short tipo_categoria,short order_presentacion){
         this.id_categoria = id_categoria;

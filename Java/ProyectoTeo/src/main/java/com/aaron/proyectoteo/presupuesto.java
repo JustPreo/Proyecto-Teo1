@@ -9,16 +9,16 @@ package com.aaron.proyectoteo;
  * @author aaron
  */
 public class presupuesto {
-    int id_presupuesto;
-    int id_usuario;
-    String nombre_descriptivo;
-    int ano_inicio;
-    int mes_inicio;
-    int ano_fin;
-    int mes_fin;
-    double total_ingresos;
-    double total_gastos;
-    double total_ahorro;
+    public int id_presupuesto;
+    public int id_usuario;
+    public String nombre_descriptivo;
+    public int ano_inicio;
+    public int mes_inicio;
+    public int ano_fin;
+    public int mes_fin;
+    public double total_ingresos;
+    public double total_gastos;
+    public double total_ahorro;
     
     
     public void presupuesto(int id_presupuesto,int id_usuario,String nombre_descriptivo,int ano_inicio,int mes_inicio,int ano_fin,int mes_fin,
