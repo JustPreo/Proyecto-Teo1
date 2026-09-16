@@ -84,7 +84,7 @@ public class TransaccionesPanel extends JPanel {
             new EmptyBorder(16, 16, 16, 16)
         ));
 
-        String[] cols = {"ID", "Fecha", "Año/Mes", "Tipo", "Subcategoría", "Descripción", "Monto (Q)", "Método de Pago", "Factura"};
+        String[] cols = {"ID", "Fecha", "Año/Mes", "Tipo", "Subcategoría", "Descripción", "Monto (L)", "Método de Pago", "Factura"};
         modelTransacciones = new DefaultTableModel(cols, 0) {
             @Override
             public boolean isCellEditable(int row, int column) { return false; }
@@ -148,7 +148,7 @@ public class TransaccionesPanel extends JPanel {
                     tpStr,
                     rs.getString("sub_nombre"),
                     rs.getString("descripcion"),
-                    String.format("Q %.2f", rs.getDouble("monto")),
+                    String.format("L %.2f", rs.getDouble("monto")),
                     rs.getString("metodo_pago"),
                     rs.getString("numero_factura") != null ? rs.getString("numero_factura") : "-"
                 });
@@ -196,7 +196,7 @@ public class TransaccionesPanel extends JPanel {
         form.add(cmbTipo);
         form.add(new JLabel("Descripción:"));
         form.add(txtDesc);
-        form.add(new JLabel("Monto (Q):"));
+        form.add(new JLabel("Monto (L):"));
         form.add(txtMonto);
         form.add(new JLabel("Fecha (AAAA-MM-DD):"));
         form.add(txtFecha);

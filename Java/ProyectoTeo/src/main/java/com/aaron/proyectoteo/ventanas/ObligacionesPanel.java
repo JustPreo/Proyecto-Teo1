@@ -97,7 +97,7 @@ public class ObligacionesPanel extends JPanel {
                 modelObligaciones.addRow(new Object[]{
                     o.id_obligacion,
                     o.nombre,
-                    String.format("Q %.2f", o.monto_mensual),
+                    String.format("L %.2f", o.monto_mensual),
                     "Día " + o.dia_vencimiento,
                     dias >= 0 ? dias + " días" : "Vencido/Inactivo",
                     o.fecha_inicio != null ? o.fecha_inicio : "-",
@@ -136,7 +136,7 @@ public class ObligacionesPanel extends JPanel {
         form.add(txtNombre);
         form.add(new JLabel("Descripción:"));
         form.add(txtDesc);
-        form.add(new JLabel("Monto Mensual (Q):"));
+        form.add(new JLabel("Monto Mensual (L):"));
         form.add(txtMonto);
         form.add(new JLabel("Día de Vencimiento (1-31):"));
         form.add(txtDia);

@@ -165,10 +165,10 @@ public class DashboardPanel extends JPanel {
 
         // Reconstruir Cards
         cardsPanel.removeAll();
-        cardsPanel.add(UITheme.createCard("Total Ingresos", String.format("Q %.2f", totalIngresos), "Mes " + mes + "/" + anio, UITheme.SUCCESS));
-        cardsPanel.add(UITheme.createCard("Total Gastos", String.format("Q %.2f", totalGastos), "Mes " + mes + "/" + anio, UITheme.DANGER));
-        cardsPanel.add(UITheme.createCard("Total Ahorro", String.format("Q %.2f", totalAhorros), "Mes " + mes + "/" + anio, UITheme.PURPLE));
-        cardsPanel.add(UITheme.createCard("Balance Neto", String.format("Q %.2f", balanceFinal), balanceFinal >= 0 ? "Superávit" : "Déficit", balanceFinal >= 0 ? UITheme.PRIMARY : UITheme.DANGER));
+        cardsPanel.add(UITheme.createCard("Total Ingresos", String.format("L %.2f", totalIngresos), "Mes " + mes + "/" + anio, UITheme.SUCCESS));
+        cardsPanel.add(UITheme.createCard("Total Gastos", String.format("L %.2f", totalGastos), "Mes " + mes + "/" + anio, UITheme.DANGER));
+        cardsPanel.add(UITheme.createCard("Total Ahorro", String.format("L %.2f", totalAhorros), "Mes " + mes + "/" + anio, UITheme.PURPLE));
+        cardsPanel.add(UITheme.createCard("Balance Neto", String.format("L %.2f", balanceFinal), balanceFinal >= 0 ? "Superávit" : "Déficit", balanceFinal >= 0 ? UITheme.PRIMARY : UITheme.DANGER));
         cardsPanel.revalidate();
         cardsPanel.repaint();
 
@@ -185,7 +185,7 @@ public class DashboardPanel extends JPanel {
                     rs.getDate("fecha"),
                     tipoStr,
                     rs.getString("descripcion"),
-                    String.format("Q %.2f", rs.getDouble("monto")),
+                    String.format("L %.2f", rs.getDouble("monto")),
                     rs.getString("metodo_pago")
                 });
             }
@@ -204,7 +204,7 @@ public class DashboardPanel extends JPanel {
                 int dias = Funciones.fn_dias_hasta_vencimiento(o.id_obligacion);
                 modelObligaciones.addRow(new Object[]{
                     o.nombre,
-                    String.format("Q %.2f", o.monto_mensual),
+                    String.format("L %.2f", o.monto_mensual),
                     "Día " + o.dia_vencimiento,
                     dias >= 0 ? dias + " días" : "Vencido"
                 });

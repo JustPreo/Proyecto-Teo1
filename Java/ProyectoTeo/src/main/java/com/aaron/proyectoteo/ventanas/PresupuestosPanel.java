@@ -83,21 +83,21 @@ public class PresupuestosPanel extends JPanel {
         summaryPanel.setOpaque(false);
         summaryPanel.setPreferredSize(new Dimension(800, 80));
 
-        lblTotalIngresos = new JLabel("Ingresos: Q 0.00", JLabel.CENTER);
+        lblTotalIngresos = new JLabel("Ingresos: L 0.00", JLabel.CENTER);
         lblTotalIngresos.setFont(UITheme.FONT_BOLD);
         lblTotalIngresos.setForeground(UITheme.SUCCESS);
         lblTotalIngresos.setBorder(BorderFactory.createLineBorder(UITheme.BORDER_COLOR, 1, true));
         lblTotalIngresos.setOpaque(true);
         lblTotalIngresos.setBackground(Color.WHITE);
 
-        lblTotalGastos = new JLabel("Gastos: Q 0.00", JLabel.CENTER);
+        lblTotalGastos = new JLabel("Gastos: L 0.00", JLabel.CENTER);
         lblTotalGastos.setFont(UITheme.FONT_BOLD);
         lblTotalGastos.setForeground(UITheme.DANGER);
         lblTotalGastos.setBorder(BorderFactory.createLineBorder(UITheme.BORDER_COLOR, 1, true));
         lblTotalGastos.setOpaque(true);
         lblTotalGastos.setBackground(Color.WHITE);
 
-        lblTotalAhorro = new JLabel("Ahorro: Q 0.00", JLabel.CENTER);
+        lblTotalAhorro = new JLabel("Ahorro: L 0.00", JLabel.CENTER);
         lblTotalAhorro.setFont(UITheme.FONT_BOLD);
         lblTotalAhorro.setForeground(UITheme.PURPLE);
         lblTotalAhorro.setBorder(BorderFactory.createLineBorder(UITheme.BORDER_COLOR, 1, true));
@@ -168,9 +168,9 @@ public class PresupuestosPanel extends JPanel {
         presupuesto p = (presupuesto) cmbPresupuestos.getSelectedItem();
         if (p == null) return;
 
-        lblTotalIngresos.setText(String.format("Ingresos: Q %.2f", p.total_ingresos));
-        lblTotalGastos.setText(String.format("Gastos: Q %.2f", p.total_gastos));
-        lblTotalAhorro.setText(String.format("Ahorro: Q %.2f", p.total_ahorro));
+        lblTotalIngresos.setText(String.format("Ingresos: L %.2f", p.total_ingresos));
+        lblTotalGastos.setText(String.format("Gastos: L %.2f", p.total_gastos));
+        lblTotalAhorro.setText(String.format("Ahorro: L %.2f", p.total_ahorro));
         
         String st = p.estado_presupuesto == 1 ? "Activo" : (p.estado_presupuesto == 2 ? "Cerrado" : "Borrador");
         lblEstado.setText("Estado: " + st);
@@ -203,9 +203,9 @@ public class PresupuestosPanel extends JPanel {
                 modelDetalles.addRow(new Object[]{
                     idDetalle,
                     subNombre,
-                    String.format("Q %.2f", montoPres),
-                    String.format("Q %.2f", montoEjec),
-                    String.format("Q %.2f", balance),
+                    String.format("L %.2f", montoPres),
+                    String.format("L %.2f", montoEjec),
+                    String.format("L %.2f", balance),
                     String.format("%.1f %%", pct),
                     just != null ? just : ""
                 });
@@ -245,11 +245,11 @@ public class PresupuestosPanel extends JPanel {
         form.add(txtAnoFin);
         form.add(new JLabel("Mes Fin (1-12):"));
         form.add(txtMesFin);
-        form.add(new JLabel("Total Ingresos (Q):"));
+        form.add(new JLabel("Total Ingresos (L):"));
         form.add(txtIngresos);
-        form.add(new JLabel("Total Gastos (Q):"));
+        form.add(new JLabel("Total Gastos (L):"));
         form.add(txtGastos);
-        form.add(new JLabel("Total Ahorro (Q):"));
+        form.add(new JLabel("Total Ahorro (L):"));
         form.add(txtAhorro);
 
         JButton btnGuardar = UITheme.createPrimaryButton("Guardar");
@@ -303,7 +303,7 @@ public class PresupuestosPanel extends JPanel {
 
         form.add(new JLabel("Subcategoría:"));
         form.add(cmbSub);
-        form.add(new JLabel("Monto Mensual (Q):"));
+        form.add(new JLabel("Monto Mensual (L):"));
         form.add(txtMonto);
         form.add(new JLabel("Justificación:"));
         form.add(txtJust);
