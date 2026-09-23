@@ -16,7 +16,7 @@ public class MainFrame extends JFrame {
     private TransaccionesPanel transaccionesPanel;
     private ObligacionesPanel obligacionesPanel;
     private CategoriasPanel categoriasPanel;
-    private ReporteIngresosGastosPanel reporteIngresosGastosPanel;
+    private ReportesPanel reportesPanel;
 
     public MainFrame(usuario usuarioActual) {
         this.usuarioActual = usuarioActual;
@@ -51,14 +51,14 @@ public class MainFrame extends JFrame {
         transaccionesPanel = new TransaccionesPanel(usuarioActual);
         obligacionesPanel = new ObligacionesPanel(usuarioActual);
         categoriasPanel = new CategoriasPanel(usuarioActual);
-        reporteIngresosGastosPanel = new ReporteIngresosGastosPanel(usuarioActual);
+        reportesPanel = new ReportesPanel(usuarioActual);
 
         contentContainer.add(dashboardPanel, "Dashboard");
         contentContainer.add(presupuestosPanel, "Presupuestos");
         contentContainer.add(transaccionesPanel, "Transacciones");
         contentContainer.add(obligacionesPanel, "Obligaciones");
         contentContainer.add(categoriasPanel, "Categorias");
-        contentContainer.add(reporteIngresosGastosPanel, "Reportes");
+        contentContainer.add(reportesPanel, "Reportes");
 
         add(contentContainer, BorderLayout.CENTER);
     }
@@ -78,7 +78,7 @@ public class MainFrame extends JFrame {
         } else if ("Categorias".equals(moduleName)) {
             categoriasPanel.cargarCategorias();
         } else if ("Reportes".equals(moduleName)) {
-            reporteIngresosGastosPanel.cargarReporte();
+            reportesPanel.cargarReporteSeleccionado();
         }
     }
 }
