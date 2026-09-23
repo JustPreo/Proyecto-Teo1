@@ -16,6 +16,15 @@ import java.util.ArrayList;
  */
 public class presupuestoCRUD {
 
+    public void sp_cerrar_presupuesto(int id_presupuesto, String modificado_por) throws SQLException {
+        Connection con = Conexion.obtenerConexion();
+        CallableStatement state = con.prepareCall("{CALL dbo.sp_cerrar_presupuesto(?,?)}");
+        state.setInt(1, id_presupuesto);
+        state.setString(2, modificado_por);
+        state.execute();
+        state.close();
+    }
+
     public void sp_insertar_presupuesto(int id_usuario, String nombre, int ano_inicio, short mes_inicio, int ano_fin, short mes_fin, double total_ingresos, double total_gastos, double total_ahorro, String creado_por) throws SQLException {
         Connection con = Conexion.obtenerConexion();
         CallableStatement state = con.prepareCall("{CALL dbo.sp_insertar_presupuesto(?,?,?,?,?,?,?,?,?,?)}");

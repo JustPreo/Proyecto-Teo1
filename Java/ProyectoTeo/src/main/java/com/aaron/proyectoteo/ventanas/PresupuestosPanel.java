@@ -466,20 +466,7 @@ public class PresupuestosPanel extends JPanel {
         int opt = JOptionPane.showConfirmDialog(this, "¿Estás seguro de cerrar el presupuesto '" + p.nombre_descriptivo + "'?", "Confirmar Cierre", JOptionPane.YES_NO_OPTION);
         if (opt == JOptionPane.YES_OPTION) {
             try {
-                // Cerramos usando el procedure oficial de actualizar presupuesto con estado 2
-                pCrud.sp_actualizar_presupuesto(
-                    p.id_presupuesto,
-                    p.nombre_descriptivo,
-                    p.ano_inicio,
-                    (short) p.mes_inicio,
-                    p.ano_fin,
-                    (short) p.mes_fin,
-                    p.total_ingresos,
-                    p.total_gastos,
-                    p.total_ahorro,
-                    (short) 2, // Estado cerrado
-                    nombreAuditor
-                );
+                pCrud.sp_cerrar_presupuesto(p.id_presupuesto, nombreAuditor);
                 JOptionPane.showMessageDialog(this, "Presupuesto cerrado con éxito");
                 cargarPresupuestos();
             } catch (Exception ex) {

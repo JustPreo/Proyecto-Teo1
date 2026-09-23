@@ -264,13 +264,12 @@ public class TransaccionesPanel extends JPanel {
                         nombreAuditor
                     );
                 } else {
-                    tCrud.sp_insertar_transaccion(
+                    tCrud.sp_registrar_transaccion_completa(
                         usuarioActual.id_usuario,
                         p.id_presupuesto,
-                        sub.id_subcategoria,
-                        null, // sin obligacion por defecto
                         f.getYear(),
                         (short) f.getMonthValue(),
+                        sub.id_subcategoria,
                         tipo,
                         txtDesc.getText().trim(),
                         Double.parseDouble(txtMonto.getText().trim()),

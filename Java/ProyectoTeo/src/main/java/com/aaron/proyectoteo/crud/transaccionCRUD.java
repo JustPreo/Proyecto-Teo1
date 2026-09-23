@@ -16,6 +16,29 @@ import java.util.ArrayList;
  */
 public class transaccionCRUD {
 
+    public void sp_registrar_transaccion_completa(int id_usuario, int id_presupuesto,
+            int ano, short mes, int id_subcategoria, short tipo, String descripcion,
+            double monto, LocalDate fecha, String metodo_pago, String numero_factura,
+            String observaciones, String creado_por) throws SQLException {
+        Connection con = Conexion.obtenerConexion();
+        CallableStatement state = con.prepareCall("{CALL dbo.sp_registrar_transaccion_completa(?,?,?,?,?,?,?,?,?,?,?,?,?)}");
+        state.setInt(1, id_usuario);
+        state.setInt(2, id_presupuesto);
+        state.setInt(3, ano);
+        state.setShort(4, mes);
+        state.setInt(5, id_subcategoria);
+        state.setShort(6, tipo);
+        state.setString(7, descripcion);
+        state.setDouble(8, monto);
+        state.setDate(9, Date.valueOf(fecha));
+        state.setString(10, metodo_pago);
+        state.setString(11, creado_por);
+        state.setString(12, numero_factura);
+        state.setString(13, observaciones);
+        state.execute();
+        state.close();
+    }
+
     public void sp_insertar_transaccion(int id_usuario, int id_presupuesto, int id_subcategoria, Integer id_obligacion, int ano, short mes, short tipo, String descripcion, double monto, LocalDate fecha, String metodo_pago, String numero_factura, String observaciones, String creado_por) throws SQLException {
         Connection con = Conexion.obtenerConexion();
         CallableStatement state = con.prepareCall("{CALL dbo.sp_insertar_transaccion(?,?,?,?,?,?,?,?,?,?,?,?,?,?)}");
@@ -98,6 +121,7 @@ public class transaccionCRUD {
             t.monto = res.getDouble("monto");
             t.metodo_pago = res.getString("metodo_pago");
             t.numero_factura = res.getString("numero_factura");
+            t.id_obligacion = res.getObject("id_obligacion") != null ? res.getInt("id_obligacion") : null;
             t.id_subcategoria = res.getInt("id_subcategoria");
             lista.add(t);
         }
