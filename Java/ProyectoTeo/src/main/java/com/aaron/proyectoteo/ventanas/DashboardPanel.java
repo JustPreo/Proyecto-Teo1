@@ -1,14 +1,18 @@
 package com.aaron.proyectoteo.ventanas;
 
+import com.aaron.proyectoteo.Conexion;
 import com.aaron.proyectoteo.Funciones;
-import com.aaron.proyectoteo.crud.*;
+import com.aaron.proyectoteo.crud.obligacion_fijaCRUD;
+import com.aaron.proyectoteo.crud.presupuestoCRUD;
+import com.aaron.proyectoteo.crud.transaccionCRUD;
 import com.aaron.proyectoteo.obligacion_fija;
 import com.aaron.proyectoteo.presupuesto;
 import com.aaron.proyectoteo.transaccion;
+import com.aaron.proyectoteo.usuario;
 import java.awt.*;
+import java.sql.CallableStatement;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.sql.Types;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import javax.swing.*;
@@ -23,10 +27,11 @@ public class DashboardPanel extends JPanel {
     private JTable tblObligaciones;
     private DefaultTableModel modelObligaciones;
 
-    private int currentUserId = 1;
-    private int currentPresupuestoId = 1;
+    private final int currentUserId;
+    private int currentPresupuestoId = -1;
 
-    public DashboardPanel() {
+    public DashboardPanel(usuario user) {
+        this.currentUserId = user.id_usuario;
         setLayout(new BorderLayout(20, 20));
         setBackground(UITheme.CONTENT_BG);
         setBorder(new EmptyBorder(24, 24, 24, 24));
@@ -139,17 +144,31 @@ public class DashboardPanel extends JPanel {
         double balanceFinal = 0;
 
         try {
+            // Resolver el presupuesto activo (o el más reciente) del usuario
+            presupuestoCRUD pCrud = new presupuestoCRUD();
+            ArrayList<presupuesto> presupuestos = pCrud.listarPorUsuario(currentUserId, (short) 1);
+            if (presupuestos.isEmpty()) {
+                presupuestos = pCrud.listarPorUsuario(currentUserId, null);
+            }
+            if (!presupuestos.isEmpty()) {
+                currentPresupuestoId = presupuestos.get(0).id_presupuesto;
+            }
+        } catch (Exception e) {
+            // No hay presupuesto para el usuario
+        }
+
+        try {
             // Calcular balance mensual mediante stored procedure
-            Connection con = com.aaron.proyectoteo.Conexion.obtenerConexion();
-            java.sql.CallableStatement cs = con.prepareCall("{CALL dbo.sp_calcular_balance_mensual(?,?,?,?,?,?,?,?)}");
+            Connection con = Conexion.obtenerConexion();
+            CallableStatement cs = con.prepareCall("{CALL dbo.sp_calcular_balance_mensual(?,?,?,?,?,?,?,?)}");
             cs.setInt(1, currentUserId);
             cs.setInt(2, currentPresupuestoId);
             cs.setInt(3, anio);
             cs.setInt(4, mes);
-            cs.registerOutParameter(5, java.sql.Types.DECIMAL);
-            cs.registerOutParameter(6, java.sql.Types.DECIMAL);
-            cs.registerOutParameter(7, java.sql.Types.DECIMAL);
-            cs.registerOutParameter(8, java.sql.Types.DECIMAL);
+            cs.registerOutParameter(5, Types.DECIMAL);
+            cs.registerOutParameter(6, Types.DECIMAL);
+            cs.registerOutParameter(7, Types.DECIMAL);
+            cs.registerOutParameter(8, Types.DECIMAL);
             cs.execute();
 
             totalIngresos = cs.getDouble(5);

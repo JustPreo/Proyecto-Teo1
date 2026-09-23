@@ -106,4 +106,37 @@ public class transaccionCRUD {
         state.close();
         return lista;
     }
+
+    public transaccion sp_consultar_transaccion(int id_transaccion) throws SQLException {
+        Connection con = Conexion.obtenerConexion();
+        CallableStatement state = con.prepareCall("{CALL dbo.sp_consultar_transaccion(?)}");
+        state.setInt(1, id_transaccion);
+        ResultSet res = state.executeQuery();
+
+        if (res.next()) {
+            transaccion t = new transaccion();
+            t.id_transaccion = res.getInt("id_transaccion");
+            t.id_usuario = res.getInt("id_usuario");
+            t.id_presupuesto = res.getInt("id_presupuesto");
+            t.anio = res.getInt("ano");
+            t.mes = res.getInt("mes");
+            t.tipo = res.getShort("tipo");
+            t.descripcion = res.getString("descripcion");
+            t.monto = res.getDouble("monto");
+            t.metodo_pago = res.getString("metodo_pago");
+            t.numero_factura = res.getString("numero_factura");
+            t.observaciones = res.getString("observaciones");
+            t.id_obligacion = res.getObject("id_obligacion") != null ? res.getInt("id_obligacion") : null;
+            t.id_subcategoria = res.getInt("id_subcategoria");
+            Date d = res.getDate("fecha");
+            if (d != null) t.fecha = d.toLocalDate();
+            res.close();
+            state.close();
+            return t;
+        }
+
+        res.close();
+        state.close();
+        return null;
+    }
 }

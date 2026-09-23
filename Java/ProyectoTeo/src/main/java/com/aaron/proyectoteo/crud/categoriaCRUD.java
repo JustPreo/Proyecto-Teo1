@@ -29,13 +29,15 @@ public class categoriaCRUD {
         state.close();
     }
 
-    public void sp_actualizar_categoria(int id_categoria,String nombre_categoria,String descripcion,String modificado_por)throws SQLException{
+    public void sp_actualizar_categoria(int id_categoria,String nombre_categoria,String descripcion,short tipo_categoria,short order_presentacion,String modificado_por)throws SQLException{
         Connection con=Conexion.obtenerConexion();
-        CallableStatement state=con.prepareCall("{CALL dbo.sp_actualizar_categoria(?,?,?,?)}");
+        CallableStatement state=con.prepareCall("{CALL dbo.sp_actualizar_categoria(?,?,?,?,?,?)}");
         state.setInt(1,id_categoria);
         state.setString(2,nombre_categoria);
         state.setString(3,descripcion);
-        state.setString(4,modificado_por);
+        state.setShort(4,tipo_categoria);
+        state.setShort(5,order_presentacion);
+        state.setString(6,modificado_por);
         state.execute();
         state.close();
     }

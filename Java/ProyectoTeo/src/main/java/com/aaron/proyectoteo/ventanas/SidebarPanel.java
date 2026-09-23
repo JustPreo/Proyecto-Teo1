@@ -1,5 +1,6 @@
 package com.aaron.proyectoteo.ventanas;
 
+import com.aaron.proyectoteo.usuario;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -17,6 +18,19 @@ public class SidebarPanel extends JPanel {
     private NavigationListener listener;
     private List<JButton> navButtons = new ArrayList<>();
     private String activeModule = "Dashboard";
+
+    private JLabel lblUser;
+    private Runnable onLogout;
+
+    public void setOnLogout(Runnable onLogout) {
+        this.onLogout = onLogout;
+    }
+
+    public void setUsuarioActual(usuario u) {
+        if (lblUser != null && u != null) {
+            lblUser.setText("👤 " + u.nombre + " " + u.apellido);
+        }
+    }
 
     public SidebarPanel(NavigationListener listener) {
         this.listener = listener;
@@ -60,15 +74,16 @@ public class SidebarPanel extends JPanel {
         addNavItem(menuPanel, "💳 Transacciones", "Transacciones");
         addNavItem(menuPanel, "⏰ Obligaciones Fijas", "Obligaciones");
         addNavItem(menuPanel, "📁 Categorías", "Categorias");
+        addNavItem(menuPanel, "📈 Reportes", "Reportes");
 
         add(menuPanel, BorderLayout.CENTER);
 
         // Footer Profile Info
-        JPanel footerPanel = new JPanel(new BorderLayout());
+        JPanel footerPanel = new JPanel(new BorderLayout(0, 10));
         footerPanel.setOpaque(false);
         footerPanel.setBorder(new EmptyBorder(16, 20, 20, 20));
 
-        JLabel lblUser = new JLabel("👤 Administrador");
+        lblUser = new JLabel("👤 Usuario");
         lblUser.setFont(UITheme.FONT_BOLD);
         lblUser.setForeground(Color.WHITE);
 
@@ -81,7 +96,14 @@ public class SidebarPanel extends JPanel {
         pnlUser.add(lblUser);
         pnlUser.add(lblDb);
 
+        JButton btnLogout = UITheme.createSecondaryButton("Cerrar Sesión");
+        btnLogout.setMaximumSize(new Dimension(200, 36));
+        btnLogout.addActionListener(e -> {
+            if (onLogout != null) onLogout.run();
+        });
+
         footerPanel.add(pnlUser, BorderLayout.CENTER);
+        footerPanel.add(btnLogout, BorderLayout.SOUTH);
         add(footerPanel, BorderLayout.SOUTH);
 
         updateActiveStyles();
@@ -93,6 +115,9 @@ public class SidebarPanel extends JPanel {
         btn.setForeground(UITheme.TEXT_LIGHT);
         btn.setBackground(UITheme.SIDEBAR_BG);
         btn.setFocusPainted(false);
+        btn.setContentAreaFilled(false);
+        btn.setBorderPainted(false);
+        btn.setOpaque(true);
         btn.setBorder(new EmptyBorder(12, 16, 12, 16));
         btn.setHorizontalAlignment(SwingConstants.LEFT);
         btn.setMaximumSize(new Dimension(220, 44));

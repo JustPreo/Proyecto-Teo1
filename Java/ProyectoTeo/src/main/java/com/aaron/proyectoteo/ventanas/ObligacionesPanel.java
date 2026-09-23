@@ -4,6 +4,7 @@ import com.aaron.proyectoteo.Funciones;
 import com.aaron.proyectoteo.crud.*;
 import com.aaron.proyectoteo.obligacion_fija;
 import com.aaron.proyectoteo.subcategoria;
+import com.aaron.proyectoteo.usuario;
 import java.awt.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -20,7 +21,12 @@ public class ObligacionesPanel extends JPanel {
     private obligacion_fijaCRUD oCrud = new obligacion_fijaCRUD();
     private subcategoriaCRUD subCrud = new subcategoriaCRUD();
 
-    public ObligacionesPanel() {
+    private final usuario usuarioActual;
+    private final String nombreAuditor;
+
+    public ObligacionesPanel(usuario usuarioActual) {
+        this.usuarioActual = usuarioActual;
+        this.nombreAuditor = usuarioActual.nombre + " " + usuarioActual.apellido;
         setLayout(new BorderLayout(20, 20));
         setBackground(UITheme.CONTENT_BG);
         setBorder(new EmptyBorder(24, 24, 24, 24));
@@ -52,12 +58,16 @@ public class ObligacionesPanel extends JPanel {
         rightBtns.setOpaque(false);
 
         JButton btnNueva = UITheme.createPrimaryButton("+ Nueva Obligación");
-        btnNueva.addActionListener(e -> abrirModalNuevaObligacion());
+        btnNueva.addActionListener(e -> abrirModalObligacion(null));
+
+        JButton btnEditar = UITheme.createSecondaryButton("✎ Editar Seleccionada");
+        btnEditar.addActionListener(e -> editarObligacionSeleccionada());
 
         JButton btnDesactivar = UITheme.createSecondaryButton("⏹ Desactivar Seleccionada");
         btnDesactivar.addActionListener(e -> desactivarSeleccionada());
 
         rightBtns.add(btnDesactivar);
+        rightBtns.add(btnEditar);
         rightBtns.add(btnNueva);
 
         topPanel.add(leftContainer, BorderLayout.WEST);
@@ -91,7 +101,7 @@ public class ObligacionesPanel extends JPanel {
         modelObligaciones.setRowCount(0);
         try {
             Boolean vigente = chkVigentes.isSelected() ? true : null;
-            ArrayList<obligacion_fija> lista = oCrud.listarPorUsuario(1, vigente);
+            ArrayList<obligacion_fija> lista = oCrud.listarPorUsuario(usuarioActual.id_usuario, vigente);
             for (obligacion_fija o : lista) {
                 int dias = Funciones.fn_dias_hasta_vencimiento(o.id_obligacion);
                 modelObligaciones.addRow(new Object[]{
@@ -108,27 +118,59 @@ public class ObligacionesPanel extends JPanel {
         } catch (Exception e) {}
     }
 
-    private void abrirModalNuevaObligacion() {
-        JDialog dlg = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Registrar Obligación Fija", true);
-        dlg.setSize(420, 480);
+    private void editarObligacionSeleccionada() {
+        int row = tblObligaciones.getSelectedRow();
+        if (row < 0) {
+            JOptionPane.showMessageDialog(this, "Selecciona una obligación en la tabla.");
+            return;
+        }
+        int id = (int) modelObligaciones.getValueAt(row, 0);
+        try {
+            obligacion_fija o = oCrud.sp_consultar_obligacion(id);
+            if (o == null) {
+                JOptionPane.showMessageDialog(this, "No se pudo cargar la obligación.");
+                return;
+            }
+            abrirModalObligacion(o);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error al cargar obligación: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void abrirModalObligacion(obligacion_fija o) {
+        boolean esEdicion = o != null;
+        JDialog dlg = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), esEdicion ? "Editar Obligación Fija" : "Registrar Obligación Fija", true);
+        dlg.setSize(420, 500);
         dlg.setLocationRelativeTo(this);
         dlg.setLayout(new BorderLayout());
 
-        JPanel form = new JPanel(new GridLayout(7, 2, 10, 10));
+        JPanel form = new JPanel(new GridLayout(8, 2, 10, 10));
         form.setBorder(new EmptyBorder(20, 20, 20, 20));
 
         JComboBox<subcategoria> cmbSub = new JComboBox<>();
+        UITheme.styleComboBox(cmbSub);
         try {
             ArrayList<subcategoria> subs = subCrud.listarTodas();
             for (subcategoria s : subs) cmbSub.addItem(s);
+            if (esEdicion) {
+                for (int i = 0; i < cmbSub.getItemCount(); i++) {
+                    if (cmbSub.getItemAt(i).id_subcategoria == o.id_subcategoria) {
+                        cmbSub.setSelectedIndex(i);
+                        break;
+                    }
+                }
+            }
         } catch (Exception e) {}
 
-        JTextField txtNombre = new JTextField();
-        JTextField txtDesc = new JTextField();
-        JTextField txtMonto = new JTextField("0.00");
-        JTextField txtDia = new JTextField("1");
-        JTextField txtFechaInicio = new JTextField(LocalDate.now().toString());
-        JTextField txtFechaFin = new JTextField();
+        JTextField txtNombre = new JTextField(esEdicion ? o.nombre : "");
+        JTextField txtDesc = new JTextField(esEdicion && o.descripcion != null ? o.descripcion : "");
+        JTextField txtMonto = new JTextField(esEdicion ? String.valueOf(o.monto_mensual) : "0.00");
+        JTextField txtDia = new JTextField(esEdicion ? String.valueOf(o.dia_vencimiento) : "1");
+        JTextField txtFechaInicio = new JTextField(esEdicion && o.fecha_inicio != null ? o.fecha_inicio.toString() : LocalDate.now().toString());
+        JTextField txtFechaFin = new JTextField(esEdicion && o.fecha_fin != null ? o.fecha_fin.toString() : "");
+        JCheckBox chkVigente = new JCheckBox("Vigente", esEdicion ? o.estado : true);
+        chkVigente.setOpaque(false);
+        chkVigente.setForeground(UITheme.TEXT_PRIMARY);
 
         form.add(new JLabel("Subcategoría:"));
         form.add(cmbSub);
@@ -144,8 +186,10 @@ public class ObligacionesPanel extends JPanel {
         form.add(txtFechaInicio);
         form.add(new JLabel("Fecha Fin (opcional):"));
         form.add(txtFechaFin);
+        form.add(new JLabel("Estado:"));
+        form.add(chkVigente);
 
-        JButton btnGuardar = UITheme.createPrimaryButton("Guardar Obligación");
+        JButton btnGuardar = UITheme.createPrimaryButton(esEdicion ? "Guardar Cambios" : "Guardar Obligación");
         btnGuardar.addActionListener(e -> {
             subcategoria sub = (subcategoria) cmbSub.getSelectedItem();
             if (sub == null) return;
@@ -153,18 +197,33 @@ public class ObligacionesPanel extends JPanel {
                 LocalDate fi = LocalDate.parse(txtFechaInicio.getText().trim());
                 LocalDate ff = txtFechaFin.getText().trim().isEmpty() ? null : LocalDate.parse(txtFechaFin.getText().trim());
 
-                oCrud.sp_insertar_obligacion(
-                    1,
-                    sub.id_subcategoria,
-                    txtNombre.getText().trim(),
-                    txtDesc.getText().trim(),
-                    Double.parseDouble(txtMonto.getText().trim()),
-                    Integer.parseInt(txtDia.getText().trim()),
-                    fi,
-                    ff,
-                    "Admin"
-                );
-                JOptionPane.showMessageDialog(dlg, "Obligación registrada con éxito");
+                if (esEdicion) {
+                    oCrud.sp_actualizar_obligacion(
+                        o.id_obligacion,
+                        sub.id_subcategoria,
+                        txtNombre.getText().trim(),
+                        txtDesc.getText().trim(),
+                        Double.parseDouble(txtMonto.getText().trim()),
+                        Integer.parseInt(txtDia.getText().trim()),
+                        fi,
+                        ff,
+                        chkVigente.isSelected(),
+                        nombreAuditor
+                    );
+                } else {
+                    oCrud.sp_insertar_obligacion(
+                        usuarioActual.id_usuario,
+                        sub.id_subcategoria,
+                        txtNombre.getText().trim(),
+                        txtDesc.getText().trim(),
+                        Double.parseDouble(txtMonto.getText().trim()),
+                        Integer.parseInt(txtDia.getText().trim()),
+                        fi,
+                        ff,
+                        nombreAuditor
+                    );
+                }
+                JOptionPane.showMessageDialog(dlg, esEdicion ? "Obligación actualizada con éxito" : "Obligación registrada con éxito");
                 dlg.dispose();
                 cargarObligaciones();
             } catch (Exception ex) {
@@ -188,7 +247,7 @@ public class ObligacionesPanel extends JPanel {
         int opt = JOptionPane.showConfirmDialog(this, "¿Desactivar obligación #" + id + "?", "Confirmar Desactivación", JOptionPane.YES_NO_OPTION);
         if (opt == JOptionPane.YES_OPTION) {
             try {
-                oCrud.sp_eliminar_obligacion(id, "Admin");
+                oCrud.sp_eliminar_obligacion(id, nombreAuditor);
                 JOptionPane.showMessageDialog(this, "Obligación desactivada.");
                 cargarObligaciones();
             } catch (Exception ex) {

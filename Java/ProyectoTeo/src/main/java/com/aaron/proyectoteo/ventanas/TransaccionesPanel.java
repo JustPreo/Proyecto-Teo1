@@ -4,6 +4,7 @@ import com.aaron.proyectoteo.crud.*;
 import com.aaron.proyectoteo.presupuesto;
 import com.aaron.proyectoteo.subcategoria;
 import com.aaron.proyectoteo.transaccion;
+import com.aaron.proyectoteo.usuario;
 import java.awt.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -25,7 +26,12 @@ public class TransaccionesPanel extends JPanel {
     private presupuestoCRUD pCrud = new presupuestoCRUD();
     private subcategoriaCRUD subCrud = new subcategoriaCRUD();
 
-    public TransaccionesPanel() {
+    private final usuario usuarioActual;
+    private final String nombreAuditor;
+
+    public TransaccionesPanel(usuario usuarioActual) {
+        this.usuarioActual = usuarioActual;
+        this.nombreAuditor = usuarioActual.nombre + " " + usuarioActual.apellido;
         setLayout(new BorderLayout(20, 20));
         setBackground(UITheme.CONTENT_BG);
         setBorder(new EmptyBorder(24, 24, 24, 24));
@@ -47,11 +53,13 @@ public class TransaccionesPanel extends JPanel {
         filterContainer.setOpaque(false);
 
         cmbPresupuestos = new JComboBox<>();
-        cmbPresupuestos.setPreferredSize(new Dimension(240, 36));
+        cmbPresupuestos.setPreferredSize(new Dimension(240, 30));
+        UITheme.styleComboBox(cmbPresupuestos);
         cmbPresupuestos.addActionListener(e -> filtrarTransacciones());
 
         cmbTipoFiltro = new JComboBox<>(new String[]{"Todos los tipos", "1 - Ingreso", "2 - Gasto", "3 - Ahorro"});
-        cmbTipoFiltro.setPreferredSize(new Dimension(160, 36));
+        cmbTipoFiltro.setPreferredSize(new Dimension(160, 30));
+        UITheme.styleComboBox(cmbTipoFiltro);
         cmbTipoFiltro.addActionListener(e -> filtrarTransacciones());
 
         filterContainer.add(lblTitle);
@@ -62,7 +70,10 @@ public class TransaccionesPanel extends JPanel {
         filterContainer.add(cmbTipoFiltro);
 
         JButton btnNueva = UITheme.createPrimaryButton("+ Nueva Transacción");
-        btnNueva.addActionListener(e -> abrirModalNuevaTransaccion());
+        btnNueva.addActionListener(e -> abrirModalTransaccion(null));
+
+        JButton btnEditar = UITheme.createSecondaryButton("✎ Editar Seleccionada");
+        btnEditar.addActionListener(e -> editarTransaccionSeleccionada());
 
         JButton btnEliminar = UITheme.createSecondaryButton("🗑️ Eliminar Seleccionada");
         btnEliminar.addActionListener(e -> eliminarTransaccionSeleccionada());
@@ -70,6 +81,7 @@ public class TransaccionesPanel extends JPanel {
         JPanel rightBtns = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         rightBtns.setOpaque(false);
         rightBtns.add(btnEliminar);
+        rightBtns.add(btnEditar);
         rightBtns.add(btnNueva);
 
         topPanel.add(filterContainer, BorderLayout.WEST);
@@ -102,7 +114,7 @@ public class TransaccionesPanel extends JPanel {
     public void cargarFiltros() {
         cmbPresupuestos.removeAllItems();
         try {
-            ArrayList<presupuesto> lista = pCrud.listarTodos();
+            ArrayList<presupuesto> lista = pCrud.listarPorUsuario(usuarioActual.id_usuario, null);
             for (presupuesto p : lista) {
                 cmbPresupuestos.addItem(p);
             }
@@ -147,14 +159,34 @@ public class TransaccionesPanel extends JPanel {
         }
     }
 
-    private void abrirModalNuevaTransaccion() {
+    private void editarTransaccionSeleccionada() {
+        int row = tblTransacciones.getSelectedRow();
+        if (row < 0) {
+            JOptionPane.showMessageDialog(this, "Selecciona una transacción en la tabla.");
+            return;
+        }
+        int idTrans = (int) modelTransacciones.getValueAt(row, 0);
+        try {
+            transaccion t = tCrud.sp_consultar_transaccion(idTrans);
+            if (t == null) {
+                JOptionPane.showMessageDialog(this, "No se pudo cargar la transacción.");
+                return;
+            }
+            abrirModalTransaccion(t);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error al cargar transacción: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void abrirModalTransaccion(transaccion t) {
         presupuesto p = (presupuesto) cmbPresupuestos.getSelectedItem();
-        if (p == null) {
+        if (p == null && t == null) {
             JOptionPane.showMessageDialog(this, "Selecciona o crea un presupuesto primero.");
             return;
         }
 
-        JDialog dlg = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Registrar Transacción", true);
+        boolean esEdicion = t != null;
+        JDialog dlg = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), esEdicion ? "Editar Transacción" : "Registrar Transacción", true);
         dlg.setSize(440, 520);
         dlg.setLocationRelativeTo(this);
         dlg.setLayout(new BorderLayout());
@@ -163,19 +195,32 @@ public class TransaccionesPanel extends JPanel {
         form.setBorder(new EmptyBorder(20, 20, 20, 20));
 
         JComboBox<subcategoria> cmbSub = new JComboBox<>();
+        UITheme.styleComboBox(cmbSub);
         try {
             ArrayList<subcategoria> subs = subCrud.listarTodas();
             for (subcategoria s : subs) cmbSub.addItem(s);
+            if (esEdicion) {
+                for (int i = 0; i < cmbSub.getItemCount(); i++) {
+                    if (cmbSub.getItemAt(i).id_subcategoria == t.id_subcategoria) {
+                        cmbSub.setSelectedIndex(i);
+                        break;
+                    }
+                }
+            }
         } catch (Exception e) {}
 
         JComboBox<String> cmbTipo = new JComboBox<>(new String[]{"1 - Ingreso", "2 - Gasto", "3 - Ahorro"});
-        JTextField txtDesc = new JTextField();
-        JTextField txtMonto = new JTextField("0.00");
-        LocalDate now = LocalDate.now();
-        JTextField txtFecha = new JTextField(now.toString()); // YYYY-MM-DD
+        UITheme.styleComboBox(cmbTipo);
+        if (esEdicion) cmbTipo.setSelectedIndex(t.tipo - 1);
+
+        JTextField txtDesc = new JTextField(esEdicion ? t.descripcion : "");
+        JTextField txtMonto = new JTextField(esEdicion ? String.valueOf(t.monto) : "0.00");
+        JTextField txtFecha = new JTextField(esEdicion ? t.fecha.toString() : LocalDate.now().toString());
         JComboBox<String> cmbMetodo = new JComboBox<>(new String[]{"efectivo", "tarjeta_debito", "tarjeta_credito", "transferencia"});
-        JTextField txtFactura = new JTextField();
-        JTextField txtObs = new JTextField();
+        UITheme.styleComboBox(cmbMetodo);
+        if (esEdicion && t.metodo_pago != null) cmbMetodo.setSelectedItem(t.metodo_pago);
+        JTextField txtFactura = new JTextField(esEdicion && t.numero_factura != null ? t.numero_factura : "");
+        JTextField txtObs = new JTextField(esEdicion && t.observaciones != null ? t.observaciones : "");
 
         form.add(new JLabel("Subcategoría:"));
         form.add(cmbSub);
@@ -194,7 +239,7 @@ public class TransaccionesPanel extends JPanel {
         form.add(new JLabel("Observaciones:"));
         form.add(txtObs);
 
-        JButton btnGuardar = UITheme.createPrimaryButton("Registrar Transacción");
+        JButton btnGuardar = UITheme.createPrimaryButton(esEdicion ? "Guardar Cambios" : "Registrar Transacción");
         btnGuardar.addActionListener(e -> {
             subcategoria sub = (subcategoria) cmbSub.getSelectedItem();
             if (sub == null) return;
@@ -202,27 +247,45 @@ public class TransaccionesPanel extends JPanel {
                 LocalDate f = LocalDate.parse(txtFecha.getText().trim());
                 short tipo = (short) (cmbTipo.getSelectedIndex() + 1);
 
-                tCrud.sp_insertar_transaccion(
-                    1, // usuario admin
-                    p.id_presupuesto,
-                    sub.id_subcategoria,
-                    null, // sin obligacion por defecto
-                    f.getYear(),
-                    (short) f.getMonthValue(),
-                    tipo,
-                    txtDesc.getText().trim(),
-                    Double.parseDouble(txtMonto.getText().trim()),
-                    f,
-                    (String) cmbMetodo.getSelectedItem(),
-                    txtFactura.getText().trim().isEmpty() ? null : txtFactura.getText().trim(),
-                    txtObs.getText().trim().isEmpty() ? null : txtObs.getText().trim(),
-                    "Admin"
-                );
-                JOptionPane.showMessageDialog(dlg, "Transacción registrada exitosamente.");
+                if (esEdicion) {
+                    tCrud.sp_actualizar_transaccion(
+                        t.id_transaccion,
+                        sub.id_subcategoria,
+                        t.id_obligacion,
+                        f.getYear(),
+                        (short) f.getMonthValue(),
+                        tipo,
+                        txtDesc.getText().trim(),
+                        Double.parseDouble(txtMonto.getText().trim()),
+                        f,
+                        (String) cmbMetodo.getSelectedItem(),
+                        txtFactura.getText().trim().isEmpty() ? null : txtFactura.getText().trim(),
+                        txtObs.getText().trim().isEmpty() ? null : txtObs.getText().trim(),
+                        nombreAuditor
+                    );
+                } else {
+                    tCrud.sp_insertar_transaccion(
+                        usuarioActual.id_usuario,
+                        p.id_presupuesto,
+                        sub.id_subcategoria,
+                        null, // sin obligacion por defecto
+                        f.getYear(),
+                        (short) f.getMonthValue(),
+                        tipo,
+                        txtDesc.getText().trim(),
+                        Double.parseDouble(txtMonto.getText().trim()),
+                        f,
+                        (String) cmbMetodo.getSelectedItem(),
+                        txtFactura.getText().trim().isEmpty() ? null : txtFactura.getText().trim(),
+                        txtObs.getText().trim().isEmpty() ? null : txtObs.getText().trim(),
+                        nombreAuditor
+                    );
+                }
+                JOptionPane.showMessageDialog(dlg, esEdicion ? "Transacción actualizada exitosamente." : "Transacción registrada exitosamente.");
                 dlg.dispose();
                 filtrarTransacciones();
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(dlg, "Error al registrar: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(dlg, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 

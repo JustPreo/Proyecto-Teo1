@@ -1,5 +1,7 @@
 package com.aaron.proyectoteo.ventanas;
 
+import com.aaron.proyectoteo.ProyectoTeo;
+import com.aaron.proyectoteo.usuario;
 import java.awt.*;
 import javax.swing.*;
 
@@ -7,14 +9,17 @@ public class MainFrame extends JFrame {
 
     private CardLayout cardLayout;
     private JPanel contentContainer;
+    private final usuario usuarioActual;
 
     private DashboardPanel dashboardPanel;
     private PresupuestosPanel presupuestosPanel;
     private TransaccionesPanel transaccionesPanel;
     private ObligacionesPanel obligacionesPanel;
     private CategoriasPanel categoriasPanel;
+    private ReporteIngresosGastosPanel reporteIngresosGastosPanel;
 
-    public MainFrame() {
+    public MainFrame(usuario usuarioActual) {
+        this.usuarioActual = usuarioActual;
         setTitle("Sistema de Presupuesto Personal - FinTrack");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1240, 780);
@@ -29,6 +34,11 @@ public class MainFrame extends JFrame {
 
         // Sidebar Navigation
         SidebarPanel sidebar = new SidebarPanel(this::mostrarModulo);
+        sidebar.setUsuarioActual(usuarioActual);
+        sidebar.setOnLogout(() -> {
+            dispose();
+            ProyectoTeo.mostrarLogin();
+        });
         add(sidebar, BorderLayout.WEST);
 
         // Center Area with CardLayout
@@ -36,17 +46,19 @@ public class MainFrame extends JFrame {
         contentContainer = new JPanel(cardLayout);
         contentContainer.setBackground(UITheme.CONTENT_BG);
 
-        dashboardPanel = new DashboardPanel();
-        presupuestosPanel = new PresupuestosPanel();
-        transaccionesPanel = new TransaccionesPanel();
-        obligacionesPanel = new ObligacionesPanel();
-        categoriasPanel = new CategoriasPanel();
+        dashboardPanel = new DashboardPanel(usuarioActual);
+        presupuestosPanel = new PresupuestosPanel(usuarioActual);
+        transaccionesPanel = new TransaccionesPanel(usuarioActual);
+        obligacionesPanel = new ObligacionesPanel(usuarioActual);
+        categoriasPanel = new CategoriasPanel(usuarioActual);
+        reporteIngresosGastosPanel = new ReporteIngresosGastosPanel(usuarioActual);
 
         contentContainer.add(dashboardPanel, "Dashboard");
         contentContainer.add(presupuestosPanel, "Presupuestos");
         contentContainer.add(transaccionesPanel, "Transacciones");
         contentContainer.add(obligacionesPanel, "Obligaciones");
         contentContainer.add(categoriasPanel, "Categorias");
+        contentContainer.add(reporteIngresosGastosPanel, "Reportes");
 
         add(contentContainer, BorderLayout.CENTER);
     }
@@ -65,17 +77,8 @@ public class MainFrame extends JFrame {
             obligacionesPanel.cargarObligaciones();
         } else if ("Categorias".equals(moduleName)) {
             categoriasPanel.cargarCategorias();
+        } else if ("Reportes".equals(moduleName)) {
+            reporteIngresosGastosPanel.cargarReporte();
         }
-    }
-
-    public static void main(String[] args) {
-        // Look & Feel del Sistema
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception ignored) {}
-
-        SwingUtilities.invokeLater(() -> {
-            new MainFrame().setVisible(true);
-        });
     }
 }

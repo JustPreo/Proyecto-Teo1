@@ -7,6 +7,7 @@ package com.aaron.proyectoteo.crud;
 import com.aaron.proyectoteo.Conexion;
 import com.aaron.proyectoteo.presupuesto;
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 
 /**
@@ -105,6 +106,18 @@ public class presupuestoCRUD {
             p.id_presupuesto = res.getInt("id_presupuesto");
             p.id_usuario = id_usuario;
             p.nombre_descriptivo = res.getString("nombre_descriptivo");
+            Date fi = res.getDate("fecha_inicio");
+            if (fi != null) {
+                LocalDate d = fi.toLocalDate();
+                p.ano_inicio = d.getYear();
+                p.mes_inicio = d.getMonthValue();
+            }
+            Date ff = res.getDate("fecha_fin");
+            if (ff != null) {
+                LocalDate d = ff.toLocalDate();
+                p.ano_fin = d.getYear();
+                p.mes_fin = d.getMonthValue();
+            }
             p.total_ingresos = res.getDouble("total_ingresos");
             p.total_gastos = res.getDouble("total_gastos");
             p.total_ahorro = res.getDouble("total_ahorro");
@@ -115,10 +128,5 @@ public class presupuestoCRUD {
         res.close();
         state.close();
         return lista;
-    }
-
-    public ArrayList<presupuesto> listarTodos() throws SQLException {
-        // Obtenemos los presupuestos llamando al procedure oficial del usuario (admin id=1)
-        return listarPorUsuario(1, null);
     }
 }

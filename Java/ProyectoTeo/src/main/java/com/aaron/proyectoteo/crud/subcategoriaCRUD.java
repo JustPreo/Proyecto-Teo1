@@ -5,6 +5,7 @@
 package com.aaron.proyectoteo.crud;
 
 import com.aaron.proyectoteo.Conexion;
+import com.aaron.proyectoteo.categoria;
 import com.aaron.proyectoteo.subcategoria;
 import java.sql.*;
 import java.util.ArrayList;
@@ -95,9 +96,9 @@ public class subcategoriaCRUD {
 
     public ArrayList<subcategoria> listarTodas() throws SQLException {
         categoriaCRUD cCrud = new categoriaCRUD();
-        ArrayList<com.aaron.proyectoteo.categoria> categorias = cCrud.listar(null);
+        ArrayList<categoria> categorias = cCrud.listar(null);
         ArrayList<subcategoria> lista = new ArrayList<>();
-        for (com.aaron.proyectoteo.categoria c : categorias) {
+        for (categoria c : categorias) {
             ArrayList<subcategoria> subs = listarPorCategoria(c.id_categoria);
             lista.addAll(subs);
         }
