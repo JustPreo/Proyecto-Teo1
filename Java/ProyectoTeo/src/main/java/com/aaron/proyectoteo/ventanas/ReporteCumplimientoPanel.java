@@ -11,6 +11,7 @@ import com.aaron.proyectoteo.crud.presupuestoCRUD;
 import com.aaron.proyectoteo.crud.presupuesto_detalleCRUD;
 import com.aaron.proyectoteo.crud.subcategoriaCRUD;
 import com.aaron.proyectoteo.crud.transaccionCRUD;
+import com.aaron.proyectoteo.crud.logicaNegocioCRUD;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -58,6 +59,7 @@ public class ReporteCumplimientoPanel extends JPanel {
     private final transaccionCRUD transaccionCrud = new transaccionCRUD();
     private final subcategoriaCRUD subcategoriaCrud = new subcategoriaCRUD();
     private final categoriaCRUD categoriaCrud = new categoriaCRUD();
+    private final logicaNegocioCRUD logicaCrud = new logicaNegocioCRUD();
     private final JComboBox<String> selectorMes = new JComboBox<>(new String[]{
         "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
         "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
@@ -186,11 +188,6 @@ public class ReporteCumplimientoPanel extends JPanel {
                 continue;
             }
 
-            Map<Integer, Double> ejecutados = new HashMap<>();
-            for (transaccion t : transaccionCrud.listarPorPresupuesto(
-                    presupuesto.id_presupuesto, null, null, periodo.getYear(), (short) periodo.getMonthValue())) {
-                ejecutados.merge(t.id_subcategoria, t.monto, (a, b) -> a + b);
-            }
             for (presupuesto_detalle detalle : detalleCrud.listarPorPresupuesto(presupuesto.id_presupuesto)) {
                 subcategoria sub = subcategorias.get(detalle.id_subcategoria);
                 if (sub == null) {
@@ -200,8 +197,14 @@ public class ReporteCumplimientoPanel extends JPanel {
                 if (cat == null) {
                     continue;
                 }
+                double ejecutado = logicaCrud.calcularMontoEjecutadoMes(
+                        detalle.id_subcategoria, presupuesto.id_presupuesto,
+                        periodo.getYear(), periodo.getMonthValue());
+                double porcentaje = logicaCrud.calcularPorcentajeEjecucionMes(
+                        detalle.id_subcategoria, presupuesto.id_presupuesto,
+                        periodo.getYear(), periodo.getMonthValue());
                 resultado.add(new Resumen(cat.nombre_categoria, sub.nombre,
-                        detalle.monto_mensual, ejecutados.getOrDefault(sub.id_subcategoria, 0.0)));
+                        detalle.monto_mensual, ejecutado, porcentaje));
             }
         }
         return resultado;
@@ -281,12 +284,15 @@ public class ReporteCumplimientoPanel extends JPanel {
         private final String subcategoria;
         private final double presupuestado;
         private final double ejecutado;
+        private final double porcentajeCalculado;
 
-        private Resumen(String categoria, String subcategoria, double presupuestado, double ejecutado) {
+        private Resumen(String categoria, String subcategoria, double presupuestado,
+                double ejecutado, double porcentajeCalculado) {
             this.categoria = categoria;
             this.subcategoria = subcategoria;
             this.presupuestado = presupuestado;
             this.ejecutado = ejecutado;
+            this.porcentajeCalculado = porcentajeCalculado;
         }
 
         private double diferencia() {
@@ -294,7 +300,7 @@ public class ReporteCumplimientoPanel extends JPanel {
         }
 
         private double porcentaje() {
-            return presupuestado == 0 ? 0 : ejecutado * 100 / presupuestado;
+            return porcentajeCalculado;
         }
 
         private String estado() {

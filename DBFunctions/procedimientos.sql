@@ -1184,6 +1184,7 @@ BEGIN
         t.monto,
         t.metodo_pago,
         t.numero_factura,
+        t.id_obligacion,
         sub.id_subcategoria,
         sub.nombre AS nombre_subcategoria,
         c.nombre_categoria,
@@ -1203,7 +1204,6 @@ BEGIN
       AND (@mes IS NULL OR t.mes = @mes)
     ORDER BY t.fecha DESC, t.id_transaccion DESC;
 END;
-
 
 
 

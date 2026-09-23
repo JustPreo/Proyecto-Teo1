@@ -19,9 +19,9 @@ public class transaccionCRUD {
     public void sp_registrar_transaccion_completa(int id_usuario, int id_presupuesto,
             int ano, short mes, int id_subcategoria, short tipo, String descripcion,
             double monto, LocalDate fecha, String metodo_pago, String numero_factura,
-            String observaciones, String creado_por) throws SQLException {
+            String observaciones, Integer id_obligacion, String creado_por) throws SQLException {
         Connection con = Conexion.obtenerConexion();
-        CallableStatement state = con.prepareCall("{CALL dbo.sp_registrar_transaccion_completa(?,?,?,?,?,?,?,?,?,?,?,?,?)}");
+        CallableStatement state = con.prepareCall("{CALL dbo.sp_registrar_transaccion_completa(?,?,?,?,?,?,?,?,?,?,?,?,?,?)}");
         state.setInt(1, id_usuario);
         state.setInt(2, id_presupuesto);
         state.setInt(3, ano);
@@ -35,6 +35,7 @@ public class transaccionCRUD {
         state.setString(11, creado_por);
         state.setString(12, numero_factura);
         state.setString(13, observaciones);
+        if (id_obligacion == null) state.setNull(14, Types.INTEGER); else state.setInt(14, id_obligacion);
         state.execute();
         state.close();
     }

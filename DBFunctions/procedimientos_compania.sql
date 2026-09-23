@@ -78,7 +78,10 @@ CREATE OR ALTER PROCEDURE sp_registrar_transaccion_completa
     @p_id_subcategoria INT,@p_tipo SMALLINT,
     @p_descripcion VARCHAR(255),@p_monto DECIMAL(12,2),
     @p_fecha DATE,@p_metodo_pago VARCHAR(30),
-    @p_creado_por VARCHAR(100)
+    @p_creado_por VARCHAR(100),
+    @p_numero_factura VARCHAR(50) = NULL,
+    @p_observaciones VARCHAR(255) = NULL,
+    @p_id_obligacion INT = NULL
 AS
 BEGIN
 
@@ -109,9 +112,18 @@ BEGIN
     WHERE id_subcategoria = @p_id_subcategoria AND estado = 1)
         THROW 50089, 'La subcategoria no existe o esta inactiva', 1;
 
+    IF @p_id_obligacion IS NOT NULL AND NOT EXISTS (
+        SELECT 1 FROM obligacion_fija
+        WHERE id_obligacion = @p_id_obligacion
+          AND id_usuario = @p_id_usuario
+          AND id_subcategoria = @p_id_subcategoria
+    )
+        THROW 50090, 'La obligacion no existe, no pertenece al usuario o usa otra subcategoria', 1;
+
     INSERT INTO transaccion (
         id_usuario,
         id_presupuesto,
+        id_obligacion,
         ano,
         mes,
         id_subcategoria,
@@ -120,11 +132,14 @@ BEGIN
         monto,
         fecha,
         metodo_pago,
+        numero_factura,
+        observaciones,
         creado_por
     )
     VALUES (
         @p_id_usuario,
         @p_id_presupuesto,
+        @p_id_obligacion,
         @p_anio,
         @p_mes,
         @p_id_subcategoria,
@@ -133,6 +148,8 @@ BEGIN
         @p_monto,
         @p_fecha,
         @p_metodo_pago,
+        @p_numero_factura,
+        @p_observaciones,
         @p_creado_por
     );
 

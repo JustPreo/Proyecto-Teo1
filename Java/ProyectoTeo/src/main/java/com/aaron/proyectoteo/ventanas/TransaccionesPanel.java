@@ -277,6 +277,7 @@ public class TransaccionesPanel extends JPanel {
                         (String) cmbMetodo.getSelectedItem(),
                         txtFactura.getText().trim().isEmpty() ? null : txtFactura.getText().trim(),
                         txtObs.getText().trim().isEmpty() ? null : txtObs.getText().trim(),
+                        null,
                         nombreAuditor
                     );
                 }
