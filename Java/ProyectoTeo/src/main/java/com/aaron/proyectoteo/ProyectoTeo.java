@@ -4,8 +4,12 @@
 
 package com.aaron.proyectoteo;
 
-import java.sql.*;
-import java.time.LocalDate;
+import com.aaron.proyectoteo.ventanas.LoginDialog;
+import com.aaron.proyectoteo.ventanas.MainFrame;
+import com.aaron.proyectoteo.ventanas.UITheme;
+import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 
 /**
  *
@@ -14,41 +18,31 @@ import java.time.LocalDate;
 public class ProyectoTeo {
 
     public static void main(String[] args) {
-        try{
+        try {
             Conexion.verificarConexion();
-            
-            
-            int cat = Funciones.fn_obtener_categoria_por_subcategoria(1);
-            System.out.println(cat);
-            
-            
-            double monto = Funciones.fn_calcular_monto_ejecutado(1, 1, 1);
-            System.out.println(monto);
-            
+            System.out.println("Conexión a SQL Server exitosa.");
+        } catch (Exception e) {
+            System.err.println("Advertencia DB: " + e.getMessage());
+        }
 
-            boolean valido = Funciones.fn_validar_vigencia_presupuesto(LocalDate.of(2026, 1, 1),1);
-            System.out.println(valido);
-            
-            double total2 = Funciones.fn_obtener_total_ejecutado_categoria_mes(1, 1, 1);
-            System.out.println(total2);            
-            
-            double total1 = Funciones.fn_obtener_total_categoria_mes(1, 1, 1, 1);
-            System.out.println(total1);
-            
-            double total3 = Funciones.fn_obtener_categoria_por_subcategoria(1);
-            System.out.println(total3);
-            
-            double total4 = Funciones.fn_obtener_balance_subcategoria(1, 1, 1, 1);
-            System.out.println(total4);
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception ignored) {}
 
-                    
-        }catch(Exception e){
-            System.out.println(e.getMessage());}
-        
+        UITheme.installDarkDefaults();
+
+        SwingUtilities.invokeLater(() -> mostrarLogin());
     }
-    
-    
-    
-             
-}
 
+    public static void mostrarLogin() {
+        JFrame parent = new JFrame();
+        parent.setUndecorated(true);
+        parent.setLocationRelativeTo(null);
+
+        LoginDialog login = new LoginDialog(parent, user -> {
+            parent.dispose();
+            new MainFrame(user).setVisible(true);
+        });
+        login.setVisible(true);
+    }
+}

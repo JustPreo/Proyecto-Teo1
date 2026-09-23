@@ -15,7 +15,9 @@ public class categoria {
     public short tipo_categoria;
     public short order_presentacion;
     
-    public void categoria (int id_categoria,String nombre_categoria,String descripcion,short tipo_categoria,short order_presentacion){
+    public categoria() {}
+
+    public categoria (int id_categoria, String nombre_categoria, String descripcion, short tipo_categoria, short order_presentacion){
         this.id_categoria = id_categoria;
         this.nombre_categoria = nombre_categoria;
         this.descripcion = descripcion;
@@ -23,4 +25,8 @@ public class categoria {
         this.order_presentacion = order_presentacion;
     }
     
+    @Override
+    public String toString() {
+        return nombre_categoria;
+    }
 }

@@ -10,11 +10,14 @@ package com.aaron.proyectoteo;
  */
 public class presupuesto_detalle {
 
-    int id_presupuesto_detalle;
-    int id_presupuesto;
-    int id_subcategoria;
-    double monto_mensual;
-    String observaciones;
+    public int id_presupuesto_detalle;
+    public int id_presupuesto;
+    public int id_subcategoria;
+    public String nombre_subcategoria;
+    public double monto_mensual;
+    public String observaciones;
+
+    public presupuesto_detalle() {}
 
     public presupuesto_detalle(int id_presupuesto_detalle,
                                int id_presupuesto,
