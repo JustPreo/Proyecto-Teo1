@@ -217,7 +217,7 @@ public class PresupuestosPanel extends JPanel {
 
                 double montoEjec = Funciones.fn_calcular_monto_ejecutado(p.ano_inicio, p.mes_inicio, idSub);
                 double balance = Funciones.fn_obtener_balance_subcategoria(p.id_presupuesto, idSub, p.ano_inicio, p.mes_inicio);
-                double pct = Funciones.fn_calcular_porcentaje_ejecutado(p.id_presupuesto, idSub, p.ano_inicio, p.mes_inicio);
+                double pct = Funciones.fn_calcular_porcentaje_ejecutado(idSub, p.id_presupuesto, p.ano_inicio, p.mes_inicio);
 
                 modelDetalles.addRow(new Object[]{
                     idDetalle,

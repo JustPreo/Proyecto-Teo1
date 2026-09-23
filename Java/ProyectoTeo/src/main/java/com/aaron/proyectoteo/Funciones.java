@@ -140,14 +140,14 @@ public final class Funciones {
     
     
     //7 fn_calcular_porcentaje_ejecutado(id_subcategoria, id_presupuesto, anio, mes)
-    public static double fn_calcular_porcentaje_ejecutado(int id_presupuesto ,int id_subcategoria , int anio, int mes ) throws SQLException{
+    public static double fn_calcular_porcentaje_ejecutado(int id_subcategoria, int id_presupuesto, int anio, int mes) throws SQLException{
         
         Connection con = Conexion.obtenerConexion();
             
         PreparedStatement state = con.prepareStatement("SELECT dbo.fn_calcular_porcentaje_ejecutado" +
                     "(?,?,?,?) AS porcentaje");
-            state.setInt(1, id_presupuesto);
-            state.setInt(2, id_subcategoria);
+            state.setInt(1, id_subcategoria);
+            state.setInt(2, id_presupuesto);
             state.setInt(3, anio);
             state.setInt(4, mes);
             
