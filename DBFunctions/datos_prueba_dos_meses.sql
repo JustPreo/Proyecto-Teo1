@@ -9,7 +9,7 @@ SET XACT_ABORT ON;
 BEGIN TRY
     BEGIN TRANSACTION;
 
-    IF EXISTS (SELECT 1 FROM dbo.usuario WHERE correo_electronico = 'demo.presupuesto@correo.com')
+    IF EXISTS (SELECT 1 FROM dbo.usuario WHERE correo_electronico = 'said@gmail.com')
         THROW 51000, 'Los datos demo ya existen. No se insertaron duplicados.', 1;
 
     DECLARE @creado_por VARCHAR(100) = 'datos_prueba';
@@ -23,15 +23,15 @@ BEGIN TRY
     DECLARE @id_obl_alquiler INT, @id_obl_electricidad INT, @id_obl_internet INT;
 
     EXEC dbo.sp_insertar_usuario
-        @nombre = 'Ana',
-        @apellido = 'Martinez',
-        @correo_electronico = 'demo.presupuesto@correo.com',
+        @nombre = 'Said',
+        @apellido = 'Napky',
+        @correo_electronico = 'said@gmail.com',
         @salario_base = 28000.00,
         @creado_por = @creado_por;
 
     SELECT @id_usuario = id_usuario
     FROM dbo.usuario
-    WHERE correo_electronico = 'demo.presupuesto@correo.com';
+    WHERE correo_electronico = 'said@gmail.com';
 
     EXEC dbo.sp_insertar_categoria 'Salario Principal', 'Ingresos regulares del usuario', 1, 1, @creado_por;
     EXEC dbo.sp_insertar_categoria 'Ingresos Extra', 'Bonos y trabajos adicionales', 1, 2, @creado_por;
@@ -113,7 +113,7 @@ BEGIN TRY
     EXEC dbo.sp_registrar_transaccion_completa @id_usuario, @id_presupuesto, 2026, 7, @id_restaurantes, 2, 'Cena de fin de mes', 760.00, '2026-07-26', 'tarjeta_credito', @creado_por, 'RES-JUL-02', NULL, NULL;
     EXEC dbo.sp_registrar_transaccion_completa @id_usuario, @id_presupuesto, 2026, 7, @id_combustible, 2, 'Combustible primera quincena', 1100.00, '2026-07-07', 'tarjeta_debito', @creado_por, 'COM-JUL-01', NULL, NULL;
     EXEC dbo.sp_registrar_transaccion_completa @id_usuario, @id_presupuesto, 2026, 7, @id_combustible, 2, 'Combustible segunda quincena', 980.00, '2026-07-22', 'tarjeta_debito', @creado_por, 'COM-JUL-02', NULL, NULL;
-    EXEC dbo.sp_registrar_transaccion_completa @id_usuario, @id_presupuesto, 2026, 7, @id_transporte_publico, 2, 'Taxi y bus', 420.00, '2026-07-14', 'efectivo', @creado_por, NULL, NULL, NULL;
+    EXEC dbo.sp_insertar_transaccion @id_usuario, @id_presupuesto, @id_transporte_publico, NULL, 2026, 7, 2, 'Taxi y bus', 420.00, '2026-07-14', 'efectivo', NULL, NULL, @creado_por;
     EXEC dbo.sp_registrar_transaccion_completa @id_usuario, @id_presupuesto, 2026, 7, @id_alquiler, 2, 'Pago de alquiler julio', 8500.00, '2026-07-05', 'transferencia', @creado_por, 'ALQ-JUL-2026', NULL, @id_obl_alquiler;
     EXEC dbo.sp_registrar_transaccion_completa @id_usuario, @id_presupuesto, 2026, 7, @id_electricidad, 2, 'Pago electricidad julio', 1150.00, '2026-07-19', 'transferencia', @creado_por, 'ELE-JUL-2026', NULL, @id_obl_electricidad;
     EXEC dbo.sp_registrar_transaccion_completa @id_usuario, @id_presupuesto, 2026, 7, @id_internet, 2, 'Pago internet julio', 700.00, '2026-07-15', 'transferencia', @creado_por, 'INT-JUL-2026', NULL, @id_obl_internet;

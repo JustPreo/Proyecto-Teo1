@@ -264,12 +264,15 @@ public class TransaccionesPanel extends JPanel {
                         nombreAuditor
                     );
                 } else {
-                    tCrud.sp_registrar_transaccion_completa(
+                    // Las transacciones sin obligación usan el CRUD básico; las cargas
+                    // masivas y los casos completos siguen usando sp_registrar_transaccion_completa.
+                    tCrud.sp_insertar_transaccion(
                         usuarioActual.id_usuario,
                         p.id_presupuesto,
+                        sub.id_subcategoria,
+                        null,
                         f.getYear(),
                         (short) f.getMonthValue(),
-                        sub.id_subcategoria,
                         tipo,
                         txtDesc.getText().trim(),
                         Double.parseDouble(txtMonto.getText().trim()),
@@ -277,7 +280,6 @@ public class TransaccionesPanel extends JPanel {
                         (String) cmbMetodo.getSelectedItem(),
                         txtFactura.getText().trim().isEmpty() ? null : txtFactura.getText().trim(),
                         txtObs.getText().trim().isEmpty() ? null : txtObs.getText().trim(),
-                        null,
                         nombreAuditor
                     );
                 }

@@ -21,9 +21,19 @@ public class SidebarPanel extends JPanel {
 
     private JLabel lblUser;
     private Runnable onLogout;
+    private Runnable onEditProfile;
+    private Runnable onDeactivateProfile;
 
     public void setOnLogout(Runnable onLogout) {
         this.onLogout = onLogout;
+    }
+
+    public void setOnEditProfile(Runnable onEditProfile) {
+        this.onEditProfile = onEditProfile;
+    }
+
+    public void setOnDeactivateProfile(Runnable onDeactivateProfile) {
+        this.onDeactivateProfile = onDeactivateProfile;
     }
 
     public void setUsuarioActual(usuario u) {
@@ -102,8 +112,29 @@ public class SidebarPanel extends JPanel {
             if (onLogout != null) onLogout.run();
         });
 
+        JButton btnEditarPerfil = UITheme.createSecondaryButton("Editar perfil");
+        btnEditarPerfil.setMaximumSize(new Dimension(200, 36));
+        btnEditarPerfil.addActionListener(e -> {
+            if (onEditProfile != null) onEditProfile.run();
+        });
+
+        JButton btnDesactivarPerfil = UITheme.createSecondaryButton("Desactivar perfil");
+        btnDesactivarPerfil.setMaximumSize(new Dimension(200, 36));
+        btnDesactivarPerfil.addActionListener(e -> {
+            if (onDeactivateProfile != null) onDeactivateProfile.run();
+        });
+
+        JPanel accionesPerfil = new JPanel();
+        accionesPerfil.setOpaque(false);
+        accionesPerfil.setLayout(new BoxLayout(accionesPerfil, BoxLayout.Y_AXIS));
+        accionesPerfil.add(btnEditarPerfil);
+        accionesPerfil.add(Box.createVerticalStrut(6));
+        accionesPerfil.add(btnDesactivarPerfil);
+        accionesPerfil.add(Box.createVerticalStrut(6));
+        accionesPerfil.add(btnLogout);
+
         footerPanel.add(pnlUser, BorderLayout.CENTER);
-        footerPanel.add(btnLogout, BorderLayout.SOUTH);
+        footerPanel.add(accionesPerfil, BorderLayout.SOUTH);
         add(footerPanel, BorderLayout.SOUTH);
 
         updateActiveStyles();

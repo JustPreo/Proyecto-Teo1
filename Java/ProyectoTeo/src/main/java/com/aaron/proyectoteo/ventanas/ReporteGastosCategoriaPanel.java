@@ -1,5 +1,6 @@
 package com.aaron.proyectoteo.ventanas;
 
+import com.aaron.proyectoteo.Funciones;
 import com.aaron.proyectoteo.categoria;
 import com.aaron.proyectoteo.presupuesto;
 import com.aaron.proyectoteo.subcategoria;
@@ -182,17 +183,12 @@ public class ReporteGastosCategoriaPanel extends JPanel {
             nombresCategorias.put(categoria.id_categoria, categoria.nombre_categoria);
         }
 
-        Map<Integer, Integer> categoriaPorSubcategoria = new HashMap<>();
-        for (subcategoria subcategoria : subcategoriaCrud.listarTodas()) {
-            categoriaPorSubcategoria.put(subcategoria.id_subcategoria, subcategoria.id_categoria);
-        }
-
         Map<Integer, ResumenCategoria> acumulados = new LinkedHashMap<>();
         for (presupuesto presupuesto : presupuestoCrud.listarPorUsuario(usuarioActual.id_usuario, null)) {
             for (transaccion transaccion : transaccionCrud.listarPorPresupuesto(
                     presupuesto.id_presupuesto, (short) 2, null, periodo.getYear(), (short) periodo.getMonthValue())) {
-                Integer idCategoria = categoriaPorSubcategoria.get(transaccion.id_subcategoria);
-                if (idCategoria == null) {
+                int idCategoria = Funciones.fn_obtener_categoria_por_subcategoria(transaccion.id_subcategoria);
+                if (idCategoria < 0) {
                     continue;
                 }
                 String nombre = nombresCategorias.getOrDefault(idCategoria, "Categoría #" + idCategoria);
@@ -203,6 +199,10 @@ public class ReporteGastosCategoriaPanel extends JPanel {
             }
         }
 
+        for (ResumenCategoria resumen : acumulados.values()) {
+            resumen.monto = Funciones.fn_obtener_total_ejecutado_categoria_mes(
+                    resumen.idCategoria, periodo.getYear(), periodo.getMonthValue());
+        }
         double total = acumulados.values().stream().mapToDouble(r -> r.monto).sum();
         for (ResumenCategoria resumen : acumulados.values()) {
             resumen.porcentaje = total == 0 ? 0 : resumen.monto * 100 / total;

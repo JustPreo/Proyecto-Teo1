@@ -189,10 +189,20 @@ public class ReporteObligacionesPanel extends JPanel {
             if (c != null) categoriaPorSubcategoria.put(s.id_subcategoria, c.nombre_categoria);
         }
 
-        Map<Integer, transaccion> pagos = new HashMap<>();
+        presupuesto presupuestoPeriodo = null;
         for (presupuesto p : presupuestoCrud.listarPorUsuario(usuarioActual.id_usuario, null)) {
+            YearMonth inicio = YearMonth.of(p.ano_inicio, p.mes_inicio);
+            YearMonth fin = YearMonth.of(p.ano_fin, p.mes_fin);
+            if (!periodo.isBefore(inicio) && !periodo.isAfter(fin)) {
+                presupuestoPeriodo = p;
+                break;
+            }
+        }
+
+        Map<Integer, transaccion> pagos = new HashMap<>();
+        if (presupuestoPeriodo != null) {
             for (transaccion t : transaccionCrud.listarPorPresupuesto(
-                    p.id_presupuesto, null, null, periodo.getYear(), (short) periodo.getMonthValue())) {
+                    presupuestoPeriodo.id_presupuesto, null, null, periodo.getYear(), (short) periodo.getMonthValue())) {
                 if (t.id_obligacion != null && (!pagos.containsKey(t.id_obligacion)
                         || (t.fecha != null && pagos.get(t.id_obligacion).fecha != null
                         && t.fecha.isAfter(pagos.get(t.id_obligacion).fecha)))) {
@@ -205,7 +215,10 @@ public class ReporteObligacionesPanel extends JPanel {
         LocalDate inicioMes = periodo.atDay(1);
         LocalDate finMes = periodo.atEndOfMonth();
         List<ResumenObligacion> resultado = new ArrayList<>();
-        for (obligacion_fija o : obligacionCrud.listarPorUsuario(usuarioActual.id_usuario, true)) {
+        if (presupuestoPeriodo == null) return resultado;
+        for (obligacion_fija o : obligacionCrud.procesarObligacionesMes(
+                usuarioActual.id_usuario, periodo.getYear(), periodo.getMonthValue(),
+                presupuestoPeriodo.id_presupuesto)) {
             if (o.fecha_inicio != null && o.fecha_inicio.isAfter(finMes)) continue;
             if (o.fecha_fin != null && o.fecha_fin.isBefore(inicioMes)) continue;
             int dia = Math.min(o.dia_vencimiento, periodo.lengthOfMonth());

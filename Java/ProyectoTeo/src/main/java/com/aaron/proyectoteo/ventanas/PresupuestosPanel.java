@@ -140,7 +140,7 @@ public class PresupuestosPanel extends JPanel {
         lblSubTitle.setForeground(UITheme.TEXT_PRIMARY);
         tableContainer.add(lblSubTitle, BorderLayout.NORTH);
 
-        String[] cols = {"ID Detalle", "Subcategoría", "Monto Presupuestado", "Monto Ejecutado", "Balance Restante", "% Ejecutado", "Justificación"};
+        String[] cols = {"ID Detalle", "Subcategoría", "Monto Presupuestado", "Monto Ejecutado", "Balance Restante", "% Ejecutado", "Promedio 3 meses", "Proyección mensual", "Justificación"};
         modelDetalles = new DefaultTableModel(cols, 0) {
             @Override
             public boolean isCellEditable(int row, int column) { return false; }
@@ -218,6 +218,10 @@ public class PresupuestosPanel extends JPanel {
                 double montoEjec = Funciones.fn_calcular_monto_ejecutado(p.ano_inicio, p.mes_inicio, idSub);
                 double balance = Funciones.fn_obtener_balance_subcategoria(p.id_presupuesto, idSub, p.ano_inicio, p.mes_inicio);
                 double pct = Funciones.fn_calcular_porcentaje_ejecutado(idSub, p.id_presupuesto, p.ano_inicio, p.mes_inicio);
+                double promedio = Funciones.fn_obtener_promedio_gasto_subcategoria(
+                        usuarioActual.id_usuario, idSub, 3);
+                double proyeccion = Funciones.fn_calcular_proyeccion_gasto_mensual(
+                        idSub, p.ano_inicio, p.mes_inicio);
 
                 modelDetalles.addRow(new Object[]{
                     idDetalle,
@@ -226,6 +230,8 @@ public class PresupuestosPanel extends JPanel {
                     String.format("L %.2f", montoEjec),
                     String.format("L %.2f", balance),
                     String.format("%.1f %%", pct),
+                    String.format("L %.2f", promedio),
+                    String.format("L %.2f", proyeccion),
                     just != null ? just : ""
                 });
             }
@@ -314,18 +320,35 @@ public class PresupuestosPanel extends JPanel {
                         nombreAuditor
                     );
                 } else {
-                    pCrud.sp_insertar_presupuesto(
-                        usuarioActual.id_usuario,
-                        txtNombre.getText().trim(),
-                        Integer.parseInt(txtAnoInicio.getText().trim()),
-                        Short.parseShort(txtMesInicio.getText().trim()),
-                        Integer.parseInt(txtAnoFin.getText().trim()),
-                        Short.parseShort(txtMesFin.getText().trim()),
-                        Double.parseDouble(txtIngresos.getText().trim()),
-                        Double.parseDouble(txtGastos.getText().trim()),
-                        Double.parseDouble(txtAhorro.getText().trim()),
-                        nombreAuditor
-                    );
+                    LocalDate inicio = LocalDate.of(
+                            Integer.parseInt(txtAnoInicio.getText().trim()),
+                            Short.parseShort(txtMesInicio.getText().trim()), 1);
+                    LocalDate fin = LocalDate.of(
+                            Integer.parseInt(txtAnoFin.getText().trim()),
+                            Short.parseShort(txtMesFin.getText().trim()), 1);
+                    int idNuevo = pCrud.sp_crear_presupuesto_completo(
+                            usuarioActual.id_usuario,
+                            txtNombre.getText().trim(),
+                            "Presupuesto creado desde la aplicación",
+                            inicio,
+                            fin,
+                            "[]",
+                            nombreAuditor);
+                    if (idNuevo <= 0) {
+                        throw new IllegalStateException("No se pudo obtener el presupuesto creado.");
+                    }
+                    // El procedimiento completo crea el presupuesto y sus detalles.
+                    // Como este formulario captura los totales globales, se actualizan aquí.
+                    pCrud.sp_actualizar_presupuesto(
+                            idNuevo,
+                            txtNombre.getText().trim(),
+                            inicio.getYear(), (short) inicio.getMonthValue(),
+                            fin.getYear(), (short) fin.getMonthValue(),
+                            Double.parseDouble(txtIngresos.getText().trim()),
+                            Double.parseDouble(txtGastos.getText().trim()),
+                            Double.parseDouble(txtAhorro.getText().trim()),
+                            estado,
+                            nombreAuditor);
                 }
                 JOptionPane.showMessageDialog(dlg, esEdicion ? "Presupuesto actualizado con éxito" : "Presupuesto creado con éxito");
                 dlg.dispose();
@@ -371,7 +394,13 @@ public class PresupuestosPanel extends JPanel {
     private void editarDetalleSeleccionado() {
         presupuesto_detalle pd = getDetalleSeleccionado();
         if (pd == null) return;
-        abrirModalDetalle(pd);
+        try {
+            presupuesto_detalle completo = pdCrud.sp_consultar_presupuesto_detalle(pd.id_presupuesto_detalle);
+            abrirModalDetalle(completo != null ? completo : pd);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error al consultar el detalle: " + ex.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private void abrirModalDetalle(presupuesto_detalle pd) {

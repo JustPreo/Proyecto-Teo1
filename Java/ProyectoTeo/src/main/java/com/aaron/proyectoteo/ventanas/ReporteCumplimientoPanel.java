@@ -1,5 +1,6 @@
 package com.aaron.proyectoteo.ventanas;
 
+import com.aaron.proyectoteo.Funciones;
 import com.aaron.proyectoteo.categoria;
 import com.aaron.proyectoteo.presupuesto;
 import com.aaron.proyectoteo.presupuesto_detalle;
@@ -66,7 +67,7 @@ public class ReporteCumplimientoPanel extends JPanel {
     });
     private final JSpinner selectorAnio = new JSpinner();
     private final DefaultTableModel modelo = new DefaultTableModel(
-            new Object[]{"Categoría", "Subcategoría", "Presupuestado", "Ejecutado", "Diferencia", "%", "Estado"}, 0) {
+            new Object[]{"Categoría", "Subcategoría", "Presupuestado", "Ejecutado", "Diferencia", "%", "Total categoría", "Ejecutado categoría", "Estado"}, 0) {
         @Override
         public boolean isCellEditable(int row, int column) {
             return false;
@@ -127,7 +128,7 @@ public class ReporteCumplimientoPanel extends JPanel {
         tabla.setRowHeight(28);
         tabla.getTableHeader().setReorderingAllowed(false);
         UITheme.styleTable(tabla);
-        tabla.getColumnModel().getColumn(6).setCellRenderer(new EstadoRenderer());
+        tabla.getColumnModel().getColumn(8).setCellRenderer(new EstadoRenderer());
         JPanel tablaPanel = new JPanel(new BorderLayout());
         tablaPanel.setBackground(UITheme.CARD_BG);
         tablaPanel.setBorder(BorderFactory.createCompoundBorder(
@@ -157,6 +158,7 @@ public class ReporteCumplimientoPanel extends JPanel {
                 modelo.addRow(new Object[]{resumen.categoria, resumen.subcategoria,
                     dinero(resumen.presupuestado), dinero(resumen.ejecutado),
                     dinero(resumen.diferencia()), String.format("%.2f%%", resumen.porcentaje()),
+                    dinero(resumen.totalCategoriaPresupuestado), dinero(resumen.totalCategoriaEjecutado),
                     resumen.estado()});
             }
             grafico.setDatos(datos);
@@ -197,6 +199,12 @@ public class ReporteCumplimientoPanel extends JPanel {
                 if (cat == null) {
                     continue;
                 }
+                logicaNegocioCRUD.ResumenCategoria resumenCategoria = logicaCrud.obtenerResumenCategoriaMes(
+                        cat.id_categoria, presupuesto.id_presupuesto,
+                        periodo.getYear(), periodo.getMonthValue());
+                double totalCategoriaPresupuestado = Funciones.fn_obtener_total_categoria_mes(
+                        cat.id_categoria, presupuesto.id_presupuesto,
+                        periodo.getYear(), periodo.getMonthValue());
                 double ejecutado = logicaCrud.calcularMontoEjecutadoMes(
                         detalle.id_subcategoria, presupuesto.id_presupuesto,
                         periodo.getYear(), periodo.getMonthValue());
@@ -204,7 +212,8 @@ public class ReporteCumplimientoPanel extends JPanel {
                         detalle.id_subcategoria, presupuesto.id_presupuesto,
                         periodo.getYear(), periodo.getMonthValue());
                 resultado.add(new Resumen(cat.nombre_categoria, sub.nombre,
-                        detalle.monto_mensual, ejecutado, porcentaje));
+                        detalle.monto_mensual, ejecutado, porcentaje,
+                        totalCategoriaPresupuestado, resumenCategoria.montoEjecutado));
             }
         }
         return resultado;
@@ -238,9 +247,9 @@ public class ReporteCumplimientoPanel extends JPanel {
             documento.add(new org.openpdf.text.Paragraph("Usuario: " + usuarioActual.nombre + " " + usuarioActual.apellido));
             documento.add(new org.openpdf.text.Paragraph("Mes: " + obtenerPeriodo()));
             documento.add(new org.openpdf.text.Paragraph(" "));
-            PdfPTable tablaPdf = new PdfPTable(7);
+            PdfPTable tablaPdf = new PdfPTable(9);
             tablaPdf.setWidthPercentage(100);
-            String[] cabeceras = {"Categoría", "Subcategoría", "Presupuestado", "Ejecutado", "Diferencia", "%", "Estado"};
+            String[] cabeceras = {"Categoría", "Subcategoría", "Presupuestado", "Ejecutado", "Diferencia", "%", "Total categoría", "Ejecutado categoría", "Estado"};
             for (String cabecera : cabeceras) {
                 PdfPCell celda = new PdfPCell(new Phrase(cabecera));
                 celda.setHorizontalAlignment(Element.ALIGN_CENTER);
@@ -253,6 +262,8 @@ public class ReporteCumplimientoPanel extends JPanel {
                 tablaPdf.addCell(new Phrase(dinero(resumen.ejecutado)));
                 tablaPdf.addCell(new Phrase(dinero(resumen.diferencia())));
                 tablaPdf.addCell(new Phrase(String.format("%.2f%%", resumen.porcentaje())));
+                tablaPdf.addCell(new Phrase(dinero(resumen.totalCategoriaPresupuestado)));
+                tablaPdf.addCell(new Phrase(dinero(resumen.totalCategoriaEjecutado)));
                 tablaPdf.addCell(new Phrase(resumen.estado()));
             }
             documento.add(tablaPdf);
@@ -285,14 +296,19 @@ public class ReporteCumplimientoPanel extends JPanel {
         private final double presupuestado;
         private final double ejecutado;
         private final double porcentajeCalculado;
+        private final double totalCategoriaPresupuestado;
+        private final double totalCategoriaEjecutado;
 
         private Resumen(String categoria, String subcategoria, double presupuestado,
-                double ejecutado, double porcentajeCalculado) {
+                double ejecutado, double porcentajeCalculado,
+                double totalCategoriaPresupuestado, double totalCategoriaEjecutado) {
             this.categoria = categoria;
             this.subcategoria = subcategoria;
             this.presupuestado = presupuestado;
             this.ejecutado = ejecutado;
             this.porcentajeCalculado = porcentajeCalculado;
+            this.totalCategoriaPresupuestado = totalCategoriaPresupuestado;
+            this.totalCategoriaEjecutado = totalCategoriaEjecutado;
         }
 
         private double diferencia() {

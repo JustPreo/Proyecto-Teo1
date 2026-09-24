@@ -16,6 +16,26 @@ import java.util.ArrayList;
  */
 public class presupuestoCRUD {
 
+    public int sp_crear_presupuesto_completo(int id_usuario, String nombre, String descripcion,
+            LocalDate periodo_inicio, LocalDate periodo_fin, String listaSubcategoriasJson,
+            String creado_por) throws SQLException {
+        Connection con = Conexion.obtenerConexion();
+        CallableStatement state = con.prepareCall("{CALL dbo.sp_crear_presupuesto_completo(?,?,?,?,?,?,?)}");
+        state.setInt(1, id_usuario);
+        state.setString(2, nombre);
+        state.setString(3, descripcion);
+        state.setDate(4, Date.valueOf(periodo_inicio));
+        state.setDate(5, Date.valueOf(periodo_fin));
+        state.setString(6, listaSubcategoriasJson);
+        state.setString(7, creado_por);
+        ResultSet res = state.executeQuery();
+        int id = -1;
+        if (res.next()) id = res.getInt("id_presupuesto");
+        res.close();
+        state.close();
+        return id;
+    }
+
     public void sp_cerrar_presupuesto(int id_presupuesto, String modificado_por) throws SQLException {
         Connection con = Conexion.obtenerConexion();
         CallableStatement state = con.prepareCall("{CALL dbo.sp_cerrar_presupuesto(?,?)}");

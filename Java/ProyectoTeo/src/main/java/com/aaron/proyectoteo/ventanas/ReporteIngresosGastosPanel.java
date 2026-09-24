@@ -1,5 +1,6 @@
 package com.aaron.proyectoteo.ventanas;
 
+import com.aaron.proyectoteo.Funciones;
 import com.aaron.proyectoteo.presupuesto;
 import com.aaron.proyectoteo.transaccion;
 import com.aaron.proyectoteo.usuario;
@@ -205,6 +206,10 @@ public class ReporteIngresosGastosPanel extends JPanel {
                 YearMonth mes = YearMonth.of(transaccion.anio, transaccion.mes);
                 ResumenMensual resumen = acumulados.get(mes);
                 if (resumen == null) {
+                    continue;
+                }
+                if (transaccion.fecha == null || !Funciones.fn_validar_vigencia_presupuesto(
+                        transaccion.fecha, presupuesto.id_presupuesto)) {
                     continue;
                 }
                 if (transaccion.tipo == 1) {

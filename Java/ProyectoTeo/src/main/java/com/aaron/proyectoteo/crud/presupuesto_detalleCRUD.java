@@ -46,6 +46,28 @@ public class presupuesto_detalleCRUD {
         state.close();
     }
 
+    public presupuesto_detalle sp_consultar_presupuesto_detalle(int id_detalle) throws SQLException {
+        Connection con = Conexion.obtenerConexion();
+        CallableStatement state = con.prepareCall("{CALL dbo.sp_consultar_presupuesto_detalle(?)}");
+        state.setInt(1, id_detalle);
+        ResultSet res = state.executeQuery();
+        if (res.next()) {
+            presupuesto_detalle pd = new presupuesto_detalle();
+            pd.id_presupuesto_detalle = res.getInt("id_detalle");
+            pd.id_presupuesto = res.getInt("id_presupuesto");
+            pd.id_subcategoria = res.getInt("id_subcategoria");
+            pd.nombre_subcategoria = res.getString("nombre_subcategoria");
+            pd.monto_mensual = res.getDouble("monto_mensual");
+            pd.observaciones = res.getString("justificacion_monto");
+            res.close();
+            state.close();
+            return pd;
+        }
+        res.close();
+        state.close();
+        return null;
+    }
+
     public ArrayList<presupuesto_detalle> listarPorPresupuesto(int id_presupuesto) throws SQLException {
         Connection con = Conexion.obtenerConexion();
         CallableStatement state = con.prepareCall("{CALL dbo.sp_listar_detalles_presupuesto(?)}");

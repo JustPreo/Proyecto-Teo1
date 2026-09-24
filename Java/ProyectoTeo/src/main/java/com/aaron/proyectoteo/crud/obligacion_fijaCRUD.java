@@ -16,6 +16,37 @@ import java.util.ArrayList;
  */
 public class obligacion_fijaCRUD {
 
+    public ArrayList<obligacion_fija> procesarObligacionesMes(int id_usuario, int anio,
+            int mes, int id_presupuesto) throws SQLException {
+        Connection con = Conexion.obtenerConexion();
+        CallableStatement state = con.prepareCall("{CALL dbo.sp_procesar_obligaciones_mes(?,?,?,?)}");
+        state.setInt(1, id_usuario);
+        state.setInt(2, anio);
+        state.setInt(3, mes);
+        state.setInt(4, id_presupuesto);
+        ResultSet res = state.executeQuery();
+        ArrayList<obligacion_fija> lista = new ArrayList<>();
+        while (res.next()) {
+            obligacion_fija o = new obligacion_fija();
+            o.id_obligacion = res.getInt("id_obligacion");
+            o.id_usuario = id_usuario;
+            o.id_subcategoria = res.getInt("id_subcategoria");
+            o.nombre = res.getString("nombre");
+            o.descripcion = res.getString("descripcion");
+            o.monto_mensual = res.getDouble("monto_fijo_mensual");
+            o.dia_vencimiento = res.getInt("dia_vencimiento");
+            Date fi = res.getDate("fecha_inicio");
+            if (fi != null) o.fecha_inicio = fi.toLocalDate();
+            Date ff = res.getDate("fecha_fin");
+            if (ff != null) o.fecha_fin = ff.toLocalDate();
+            o.estado = true;
+            lista.add(o);
+        }
+        res.close();
+        state.close();
+        return lista;
+    }
+
     public void sp_insertar_obligacion(int id_usuario, int id_subcategoria, String nombre, String descripcion, double monto_fijo_mensual, int dia_vencimiento, LocalDate fecha_inicio, LocalDate fecha_fin, String creado_por) throws SQLException {
         Connection con = Conexion.obtenerConexion();
         CallableStatement state = con.prepareCall("{CALL dbo.sp_insertar_obligacion(?,?,?,?,?,?,?,?,?)}");
