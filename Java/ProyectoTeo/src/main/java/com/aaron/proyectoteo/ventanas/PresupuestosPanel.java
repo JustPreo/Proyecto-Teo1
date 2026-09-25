@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
+import org.jdatepicker.JDatePicker;
 
 public class PresupuestosPanel extends JPanel {
 
@@ -267,14 +268,16 @@ public class PresupuestosPanel extends JPanel {
         dlg.setLocationRelativeTo(this);
         dlg.setLayout(new BorderLayout());
 
-        JPanel form = new JPanel(new GridLayout(10, 2, 10, 10));
+        JPanel form = new JPanel(new GridLayout(7, 2, 10, 10));
         form.setBorder(new EmptyBorder(20, 20, 20, 20));
 
         JTextField txtNombre = new JTextField(esEdicion ? p.nombre_descriptivo : "");
-        JTextField txtAnoInicio = new JTextField(String.valueOf(esEdicion ? p.ano_inicio : LocalDate.now().getYear()));
-        JTextField txtMesInicio = new JTextField(String.valueOf(esEdicion ? p.mes_inicio : LocalDate.now().getMonthValue()));
-        JTextField txtAnoFin = new JTextField(String.valueOf(esEdicion ? p.ano_fin : LocalDate.now().getYear()));
-        JTextField txtMesFin = new JTextField(String.valueOf(esEdicion ? p.mes_fin : LocalDate.now().getMonthValue()));
+        JDatePicker selectorInicio = DatePickerUtils.crear(esEdicion
+                ? LocalDate.of(p.ano_inicio, p.mes_inicio, 1)
+                : LocalDate.now());
+        JDatePicker selectorFin = DatePickerUtils.crear(esEdicion
+                ? LocalDate.of(p.ano_fin, p.mes_fin, 1)
+                : LocalDate.now());
         JTextField txtIngresos = new JTextField(esEdicion ? String.valueOf(p.total_ingresos) : "0.00");
         JTextField txtGastos = new JTextField(esEdicion ? String.valueOf(p.total_gastos) : "0.00");
         JTextField txtAhorro = new JTextField(esEdicion ? String.valueOf(p.total_ahorro) : "0.00");
@@ -284,14 +287,10 @@ public class PresupuestosPanel extends JPanel {
 
         form.add(new JLabel("Nombre Descriptivo:"));
         form.add(txtNombre);
-        form.add(new JLabel("Año Inicio:"));
-        form.add(txtAnoInicio);
-        form.add(new JLabel("Mes Inicio (1-12):"));
-        form.add(txtMesInicio);
-        form.add(new JLabel("Año Fin:"));
-        form.add(txtAnoFin);
-        form.add(new JLabel("Mes Fin (1-12):"));
-        form.add(txtMesFin);
+        form.add(new JLabel("Fecha Inicio:"));
+        form.add(selectorInicio);
+        form.add(new JLabel("Fecha Fin:"));
+        form.add(selectorFin);
         form.add(new JLabel("Total Ingresos (L):"));
         form.add(txtIngresos);
         form.add(new JLabel("Total Gastos (L):"));
@@ -305,14 +304,19 @@ public class PresupuestosPanel extends JPanel {
         btnGuardar.addActionListener(e -> {
             try {
                 short estado = (short) (cmbEstado.getSelectedIndex() + 1);
+                LocalDate inicio = DatePickerUtils.obtener(selectorInicio);
+                LocalDate fin = DatePickerUtils.obtener(selectorFin);
+                if (inicio == null || fin == null) {
+                    throw new IllegalArgumentException("Selecciona las fechas de inicio y fin.");
+                }
                 if (esEdicion) {
                     pCrud.sp_actualizar_presupuesto(
                         p.id_presupuesto,
                         txtNombre.getText().trim(),
-                        Integer.parseInt(txtAnoInicio.getText().trim()),
-                        Short.parseShort(txtMesInicio.getText().trim()),
-                        Integer.parseInt(txtAnoFin.getText().trim()),
-                        Short.parseShort(txtMesFin.getText().trim()),
+                        inicio.getYear(),
+                        (short) inicio.getMonthValue(),
+                        fin.getYear(),
+                        (short) fin.getMonthValue(),
                         Double.parseDouble(txtIngresos.getText().trim()),
                         Double.parseDouble(txtGastos.getText().trim()),
                         Double.parseDouble(txtAhorro.getText().trim()),
@@ -320,12 +324,6 @@ public class PresupuestosPanel extends JPanel {
                         nombreAuditor
                     );
                 } else {
-                    LocalDate inicio = LocalDate.of(
-                            Integer.parseInt(txtAnoInicio.getText().trim()),
-                            Short.parseShort(txtMesInicio.getText().trim()), 1);
-                    LocalDate fin = LocalDate.of(
-                            Integer.parseInt(txtAnoFin.getText().trim()),
-                            Short.parseShort(txtMesFin.getText().trim()), 1);
                     int idNuevo = pCrud.sp_crear_presupuesto_completo(
                             usuarioActual.id_usuario,
                             txtNombre.getText().trim(),
@@ -359,7 +357,12 @@ public class PresupuestosPanel extends JPanel {
         });
 
         dlg.add(form, BorderLayout.CENTER);
-        dlg.add(btnGuardar, BorderLayout.SOUTH);
+        JPanel acciones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        JButton btnCancelar = UITheme.createSecondaryButton("Cancelar");
+        btnCancelar.addActionListener(e -> dlg.dispose());
+        acciones.add(btnCancelar);
+        acciones.add(btnGuardar);
+        dlg.add(acciones, BorderLayout.SOUTH);
         dlg.setVisible(true);
     }
 
@@ -428,7 +431,7 @@ public class PresupuestosPanel extends JPanel {
             JComboBox<subcategoria> cmbSub = new JComboBox<>();
             UITheme.styleComboBox(cmbSub);
             try {
-                ArrayList<subcategoria> subs = subCrud.listarTodas();
+                ArrayList<subcategoria> subs = subCrud.listarTodas(usuarioActual.id_usuario);
                 for (subcategoria s : subs) cmbSub.addItem(s);
             } catch (Exception e) {}
             form.add(cmbSub);
@@ -469,7 +472,12 @@ public class PresupuestosPanel extends JPanel {
         });
 
         dlg.add(form, BorderLayout.CENTER);
-        dlg.add(btnGuardar, BorderLayout.SOUTH);
+        JPanel acciones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        JButton btnCancelar = UITheme.createSecondaryButton("Cancelar");
+        btnCancelar.addActionListener(e -> dlg.dispose());
+        acciones.add(btnCancelar);
+        acciones.add(btnGuardar);
+        dlg.add(acciones, BorderLayout.SOUTH);
         dlg.setVisible(true);
     }
 

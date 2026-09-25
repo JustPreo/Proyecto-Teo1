@@ -29,10 +29,15 @@ Table presupuesto [headercolor: #175e7a] {
 
 Table categoria [headercolor: #175e7a] {
 	id_categoria integer [ pk, increment, not null ]
+	id_usuario integer [ not null ]
 	nombre_categoria varchar(50) [ not null ]
 	descripcion varchar(255)
 	tipo_categoria smallint [ not null, note: '1.ingreso/2.gasto/3.ahorro' ]
 	order_presentacion smallint [ not null ]
+
+	indexes {
+		(id_usuario, nombre_categoria, tipo_categoria) [ name: 'categoria_index_0', unique ]
+	}
 }
 
 Table subcategoria [headercolor: #175e7a] {
@@ -93,6 +98,10 @@ Table transaccion [headercolor: #175e7a] {
 
 Ref fk_presupuesto_id_usuario_usuario {
 	presupuesto.id_usuario > usuario.id_usuario [ delete: no action, update: no action ]
+}
+
+Ref fk_categoria_id_usuario_usuario {
+	categoria.id_usuario > usuario.id_usuario [ delete: no action, update: no action ]
 }
 
 Ref fk_subcategoria_id_categoria_categoria {

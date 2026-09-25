@@ -12,7 +12,6 @@ CREATE TABLE [usuario] (
 	[modificado_en] DATETIME2,
 	PRIMARY KEY([id_usuario])
 );
-GO
 
 CREATE TABLE [presupuesto] (
 	[id_presupuesto] INTEGER NOT NULL IDENTITY,
@@ -34,17 +33,16 @@ CREATE TABLE [presupuesto] (
 	CHECK (ano_fin > ano_inicio OR (ano_fin = ano_inicio AND mes_fin >= mes_inicio)),
 	PRIMARY KEY([id_presupuesto])
 );
-GO
 
 EXEC sys.sp_addextendedproperty
     @name=N'MS_Description', @value=N'(1.activo/2.cerrado/3.borrador)',
     @level0type=N'SCHEMA',@level0name=N'dbo',
     @level1type=N'TABLE',@level1name=N'presupuesto',
     @level2type=N'COLUMN',@level2name=N'estado_presupuesto';
-GO
 
 CREATE TABLE [categoria] (
 	[id_categoria] INTEGER NOT NULL IDENTITY,
+	[id_usuario] INTEGER NOT NULL,
 	[nombre_categoria] VARCHAR(50) NOT NULL,
 	[descripcion] VARCHAR(255),
 	[tipo_categoria] SMALLINT NOT NULL CHECK(tipo_categoria IN (1,2,3)),
@@ -55,14 +53,15 @@ CREATE TABLE [categoria] (
 	[modificado_en] DATETIME2,
 	PRIMARY KEY([id_categoria])
 );
-GO
+
+CREATE UNIQUE INDEX [categoria_index_0]
+ON [categoria] ([id_usuario], [nombre_categoria], [tipo_categoria]);
 
 EXEC sys.sp_addextendedproperty
     @name=N'MS_Description', @value=N'1.ingreso/2.gasto/3.ahorro',
     @level0type=N'SCHEMA',@level0name=N'dbo',
     @level1type=N'TABLE',@level1name=N'categoria',
     @level2type=N'COLUMN',@level2name=N'tipo_categoria';
-GO
 
 CREATE TABLE [subcategoria] (
 	[id_subcategoria] INTEGER NOT NULL IDENTITY,
@@ -77,11 +76,9 @@ CREATE TABLE [subcategoria] (
 	[modificado_en] DATETIME2,
 	PRIMARY KEY([id_subcategoria])
 );
-GO
 
 CREATE UNIQUE INDEX [subcategoria_index_0]
 ON [subcategoria] ([id_categoria], [nombre]);
-GO
 
 CREATE TABLE [presupuesto_detalle] (
 	[id_detalle] INTEGER NOT NULL IDENTITY,
@@ -95,11 +92,9 @@ CREATE TABLE [presupuesto_detalle] (
 	[modificado_en] DATETIME2,
 	PRIMARY KEY([id_detalle])
 );
-GO
 
 CREATE UNIQUE INDEX [presupuesto_detalle_index_0]
 ON [presupuesto_detalle] ([id_presupuesto], [id_subcategoria]);
-GO
 
 CREATE TABLE [obligacion_fija] (
 	[id_obligacion] INTEGER NOT NULL IDENTITY,
@@ -119,7 +114,6 @@ CREATE TABLE [obligacion_fija] (
 	CHECK (fecha_fin IS NULL OR fecha_fin >= fecha_inicio),
 	PRIMARY KEY([id_obligacion])
 );
-GO
 
 CREATE TABLE [transaccion] (
 	[id_transaccion] INTEGER NOT NULL IDENTITY,
@@ -143,56 +137,49 @@ CREATE TABLE [transaccion] (
 	[modificado_en] DATETIME2,
 	PRIMARY KEY([id_transaccion])
 );
-GO
 
 
 ALTER TABLE [presupuesto]
 ADD FOREIGN KEY([id_usuario])
 REFERENCES [usuario]([id_usuario])
 ON UPDATE NO ACTION ON DELETE NO ACTION;
-GO
+ALTER TABLE [categoria]
+ADD FOREIGN KEY([id_usuario])
+REFERENCES [usuario]([id_usuario])
+ON UPDATE NO ACTION ON DELETE NO ACTION;
 ALTER TABLE [subcategoria]
 ADD FOREIGN KEY([id_categoria])
 REFERENCES [categoria]([id_categoria])
 ON UPDATE NO ACTION ON DELETE NO ACTION;
-GO
 ALTER TABLE [presupuesto_detalle]
 ADD FOREIGN KEY([id_subcategoria])
 REFERENCES [subcategoria]([id_subcategoria])
 ON UPDATE NO ACTION ON DELETE NO ACTION;
-GO
 ALTER TABLE [presupuesto_detalle]
 ADD FOREIGN KEY([id_presupuesto])
 REFERENCES [presupuesto]([id_presupuesto])
 ON UPDATE NO ACTION ON DELETE NO ACTION;
-GO
 ALTER TABLE [obligacion_fija]
 ADD FOREIGN KEY([id_usuario])
 REFERENCES [usuario]([id_usuario])
 ON UPDATE NO ACTION ON DELETE NO ACTION;
-GO
 ALTER TABLE [obligacion_fija]
 ADD FOREIGN KEY([id_subcategoria])
 REFERENCES [subcategoria]([id_subcategoria])
 ON UPDATE NO ACTION ON DELETE NO ACTION;
-GO
 ALTER TABLE [transaccion]
 ADD FOREIGN KEY([id_usuario])
 REFERENCES [usuario]([id_usuario])
 ON UPDATE NO ACTION ON DELETE NO ACTION;
-GO
 ALTER TABLE [transaccion]
 ADD FOREIGN KEY([id_presupuesto])
 REFERENCES [presupuesto]([id_presupuesto])
 ON UPDATE NO ACTION ON DELETE NO ACTION;
-GO
 ALTER TABLE [transaccion]
 ADD FOREIGN KEY([id_subcategoria])
 REFERENCES [subcategoria]([id_subcategoria])
 ON UPDATE NO ACTION ON DELETE NO ACTION;
-GO
 ALTER TABLE [transaccion]
 ADD FOREIGN KEY([id_obligacion])
 REFERENCES [obligacion_fija]([id_obligacion])
 ON UPDATE NO ACTION ON DELETE NO ACTION;
-GO

@@ -21,9 +21,11 @@ public class CategoriasPanel extends JPanel {
     private categoriaCRUD catCrud = new categoriaCRUD();
     private subcategoriaCRUD subCrud = new subcategoriaCRUD();
 
+    private final usuario usuarioActual;
     private final String nombreAuditor;
 
     public CategoriasPanel(usuario usuarioActual) {
+        this.usuarioActual = usuarioActual;
         this.nombreAuditor = usuarioActual.nombre + " " + usuarioActual.apellido;
         setLayout(new BorderLayout(20, 20));
         setBackground(UITheme.CONTENT_BG);
@@ -147,7 +149,7 @@ public class CategoriasPanel extends JPanel {
         modelCategorias.setRowCount(0);
         modelSubcategorias.setRowCount(0);
         try {
-            ArrayList<categoria> lista = catCrud.listar(null);
+            ArrayList<categoria> lista = catCrud.listar(usuarioActual.id_usuario, null);
             for (categoria c : lista) {
                 String tpStr = c.tipo_categoria == 1 ? "1 - Ingreso" : (c.tipo_categoria == 2 ? "2 - Gasto" : "3 - Ahorro");
                 modelCategorias.addRow(new Object[]{
@@ -209,7 +211,7 @@ public class CategoriasPanel extends JPanel {
         int id = getIdCategoriaSeleccionada();
         if (id < 0) return;
         try {
-            categoria c = catCrud.sp_consultar_categoria(id);
+            categoria c = catCrud.sp_consultar_categoria(usuarioActual.id_usuario, id);
             abrirModalCategoria(c);
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Error al cargar categoría: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -248,6 +250,7 @@ public class CategoriasPanel extends JPanel {
                 short tipo = (short) (cmbTipo.getSelectedIndex() + 1);
                 if (esEdicion) {
                     catCrud.sp_actualizar_categoria(
+                        usuarioActual.id_usuario,
                         c.id_categoria,
                         txtNombre.getText().trim(),
                         txtDesc.getText().trim(),
@@ -257,6 +260,7 @@ public class CategoriasPanel extends JPanel {
                     );
                 } else {
                     catCrud.sp_insertar_categoria(
+                        usuarioActual.id_usuario,
                         txtNombre.getText().trim(),
                         txtDesc.getText().trim(),
                         tipo,
@@ -273,7 +277,12 @@ public class CategoriasPanel extends JPanel {
         });
 
         dlg.add(form, BorderLayout.CENTER);
-        dlg.add(btnGuardar, BorderLayout.SOUTH);
+        JPanel acciones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        JButton btnCancelar = UITheme.createSecondaryButton("Cancelar");
+        btnCancelar.addActionListener(e -> dlg.dispose());
+        acciones.add(btnCancelar);
+        acciones.add(btnGuardar);
+        dlg.add(acciones, BorderLayout.SOUTH);
         dlg.setVisible(true);
     }
 
@@ -283,7 +292,7 @@ public class CategoriasPanel extends JPanel {
         int opt = JOptionPane.showConfirmDialog(this, "¿Eliminar la categoría seleccionada?\nSe eliminarán sus subcategorías no usadas.", "Confirmar Eliminación", JOptionPane.YES_NO_OPTION);
         if (opt == JOptionPane.YES_OPTION) {
             try {
-                catCrud.sp_eliminar_categoria(id, nombreAuditor);
+                catCrud.sp_eliminar_categoria(usuarioActual.id_usuario, id, nombreAuditor);
                 JOptionPane.showMessageDialog(this, "Categoría eliminada con éxito");
                 cargarCategorias();
             } catch (Exception ex) {
@@ -360,7 +369,12 @@ public class CategoriasPanel extends JPanel {
         });
 
         dlg.add(form, BorderLayout.CENTER);
-        dlg.add(btnGuardar, BorderLayout.SOUTH);
+        JPanel acciones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        JButton btnCancelar = UITheme.createSecondaryButton("Cancelar");
+        btnCancelar.addActionListener(e -> dlg.dispose());
+        acciones.add(btnCancelar);
+        acciones.add(btnGuardar);
+        dlg.add(acciones, BorderLayout.SOUTH);
         dlg.setVisible(true);
     }
 

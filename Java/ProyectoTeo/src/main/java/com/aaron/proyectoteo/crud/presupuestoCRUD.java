@@ -9,6 +9,7 @@ import com.aaron.proyectoteo.presupuesto;
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 
 /**
  *
@@ -156,6 +157,13 @@ public class presupuestoCRUD {
 
         res.close();
         state.close();
+
+        lista.sort(Comparator
+            .comparingInt((presupuesto p) -> p.estado_presupuesto == 1 ? 0 : (p.estado_presupuesto == 3 ? 1 : 2))
+            .thenComparing(Comparator.comparingInt((presupuesto p) -> p.ano_inicio).reversed())
+            .thenComparing(Comparator.comparingInt((presupuesto p) -> p.mes_inicio).reversed())
+            .thenComparing(p -> p.nombre_descriptivo, String.CASE_INSENSITIVE_ORDER));
+
         return lista;
     }
 }

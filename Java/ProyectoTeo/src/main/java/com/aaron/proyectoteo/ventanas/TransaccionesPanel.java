@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
+import org.jdatepicker.JDatePicker;
 
 public class TransaccionesPanel extends JPanel {
 
@@ -197,7 +198,7 @@ public class TransaccionesPanel extends JPanel {
         JComboBox<subcategoria> cmbSub = new JComboBox<>();
         UITheme.styleComboBox(cmbSub);
         try {
-            ArrayList<subcategoria> subs = subCrud.listarTodas();
+            ArrayList<subcategoria> subs = subCrud.listarTodas(usuarioActual.id_usuario);
             for (subcategoria s : subs) cmbSub.addItem(s);
             if (esEdicion) {
                 for (int i = 0; i < cmbSub.getItemCount(); i++) {
@@ -215,7 +216,7 @@ public class TransaccionesPanel extends JPanel {
 
         JTextField txtDesc = new JTextField(esEdicion ? t.descripcion : "");
         JTextField txtMonto = new JTextField(esEdicion ? String.valueOf(t.monto) : "0.00");
-        JTextField txtFecha = new JTextField(esEdicion ? t.fecha.toString() : LocalDate.now().toString());
+        JDatePicker selectorFecha = DatePickerUtils.crear(esEdicion ? t.fecha : LocalDate.now());
         JComboBox<String> cmbMetodo = new JComboBox<>(new String[]{"efectivo", "tarjeta_debito", "tarjeta_credito", "transferencia"});
         UITheme.styleComboBox(cmbMetodo);
         if (esEdicion && t.metodo_pago != null) cmbMetodo.setSelectedItem(t.metodo_pago);
@@ -230,8 +231,8 @@ public class TransaccionesPanel extends JPanel {
         form.add(txtDesc);
         form.add(new JLabel("Monto (L):"));
         form.add(txtMonto);
-        form.add(new JLabel("Fecha (AAAA-MM-DD):"));
-        form.add(txtFecha);
+        form.add(new JLabel("Fecha:"));
+        form.add(selectorFecha);
         form.add(new JLabel("Método de Pago:"));
         form.add(cmbMetodo);
         form.add(new JLabel("No. Factura (opcional):"));
@@ -244,7 +245,10 @@ public class TransaccionesPanel extends JPanel {
             subcategoria sub = (subcategoria) cmbSub.getSelectedItem();
             if (sub == null) return;
             try {
-                LocalDate f = LocalDate.parse(txtFecha.getText().trim());
+                LocalDate f = DatePickerUtils.obtener(selectorFecha);
+                if (f == null) {
+                    throw new IllegalArgumentException("Selecciona una fecha.");
+                }
                 short tipo = (short) (cmbTipo.getSelectedIndex() + 1);
 
                 if (esEdicion) {
@@ -292,7 +296,12 @@ public class TransaccionesPanel extends JPanel {
         });
 
         dlg.add(form, BorderLayout.CENTER);
-        dlg.add(btnGuardar, BorderLayout.SOUTH);
+        JPanel acciones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        JButton btnCancelar = UITheme.createSecondaryButton("Cancelar");
+        btnCancelar.addActionListener(e -> dlg.dispose());
+        acciones.add(btnCancelar);
+        acciones.add(btnGuardar);
+        dlg.add(acciones, BorderLayout.SOUTH);
         dlg.setVisible(true);
     }
 

@@ -182,8 +182,8 @@ public class ReporteObligacionesPanel extends JPanel {
         Map<Integer, String> categoriaPorSubcategoria = new HashMap<>();
         Map<Integer, Integer> idCategoriaPorSubcategoria = new HashMap<>();
         Map<Integer, categoria> categorias = new HashMap<>();
-        for (categoria c : categoriaCrud.listar(null)) categorias.put(c.id_categoria, c);
-        for (subcategoria s : subcategoriaCrud.listarTodas()) {
+        for (categoria c : categoriaCrud.listar(usuarioActual.id_usuario, null)) categorias.put(c.id_categoria, c);
+        for (subcategoria s : subcategoriaCrud.listarTodas(usuarioActual.id_usuario)) {
             idCategoriaPorSubcategoria.put(s.id_subcategoria, s.id_categoria);
             categoria c = categorias.get(s.id_categoria);
             if (c != null) categoriaPorSubcategoria.put(s.id_subcategoria, c.nombre_categoria);

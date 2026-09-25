@@ -142,11 +142,14 @@ END
 --1 = Ingreso  2 = Gasto  3 = Ahorro
 
 CREATE OR ALTER PROCEDURE dbo.sp_insertar_categoria
+    @id_usuario INT,
     @nombre_categoria VARCHAR(50),@descripcion VARCHAR(255),
     @tipo_categoria SMALLINT,@order_presentacion SMALLINT,
     @creado_por VARCHAR(100)
 AS
 BEGIN
+	IF NOT EXISTS (SELECT 1 FROM usuario WHERE id_usuario = @id_usuario AND estado = 1)
+        THROW 50000, 'El usuario no existe o esta inactivo', 1;
 	
 	
 	IF (@tipo_categoria NOT IN (1,2,3))
@@ -155,15 +158,16 @@ BEGIN
 	if(@order_presentacion < 0)
 		THROW 50001, 'El orden de presentacion no puede ser negativo',1;
 	
-	if exists(select 1 from categoria where nombre_categoria = @nombre_categoria and tipo_categoria = @tipo_categoria)
+	if exists(select 1 from categoria where id_usuario = @id_usuario
+		and nombre_categoria = @nombre_categoria and tipo_categoria = @tipo_categoria)
 		throw 50002,'Ya existe una categoria con ese nombre y tipo',1;
 	
-	insert into categoria(nombre_categoria,
+	insert into categoria(id_usuario,nombre_categoria,
 	descripcion,
 	tipo_categoria,
 	order_presentacion,
 	creado_por)VALUES(
-	@nombre_categoria,
+	@id_usuario,@nombre_categoria,
 	@descripcion,
 	@tipo_categoria,
 	@order_presentacion,
@@ -176,13 +180,14 @@ END;
 
 
 CREATE OR ALTER PROCEDURE dbo.sp_actualizar_categoria
-    @id_categoria INT,@nombre_categoria VARCHAR(50),
+    @id_usuario INT,@id_categoria INT,@nombre_categoria VARCHAR(50),
     @descripcion VARCHAR(255),@tipo_categoria SMALLINT,
     @order_presentacion SMALLINT,@modificado_por VARCHAR(100)
 AS
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM categoria WHERE id_categoria = @id_categoria)
-        THROW 50100, 'La categoria no existe', 1;
+    IF NOT EXISTS (SELECT 1 FROM categoria
+                   WHERE id_categoria = @id_categoria AND id_usuario = @id_usuario)
+        THROW 50100, 'La categoria no existe o no pertenece al usuario', 1;
 
     IF (@tipo_categoria NOT IN (1,2,3))
         THROW 50003, 'El tipo de categoria debe ser 1, 2 o 3', 1;
@@ -193,6 +198,7 @@ BEGIN
     IF EXISTS (SELECT 1 FROM categoria
                WHERE nombre_categoria = @nombre_categoria
                  AND tipo_categoria   = @tipo_categoria
+                 AND id_usuario       = @id_usuario
                  AND id_categoria    != @id_categoria)
         THROW 50103, 'Ya existe una categoria con ese nombre y tipo', 1;
 
@@ -211,11 +217,11 @@ END;
 
 
 CREATE OR ALTER PROCEDURE dbo.sp_eliminar_categoria
-    @id_categoria INT,@modificado_por VARCHAR(100)
+    @id_usuario INT,@id_categoria INT,@modificado_por VARCHAR(100)
 AS
 BEGIN
-	if not exists(select 1 from categoria where id_categoria = @id_categoria)
-		throw 50005,'La categoria no existe',1;
+	if not exists(select 1 from categoria where id_categoria = @id_categoria AND id_usuario = @id_usuario)
+		throw 50005,'La categoria no existe o no pertenece al usuario',1;
 
 	if exists(select 1 from subcategoria where id_categoria = @id_categoria and es_default = 0 and estado = 1)
 		throw 50006, 'La categoria tiene subcategorias activas',1;
@@ -239,25 +245,29 @@ END;
 
 
 CREATE OR ALTER PROCEDURE dbo.sp_consultar_categoria
-    @id_categoria INT
+    @id_usuario INT,@id_categoria INT
 AS
 BEGIN
-	if not exists(select 1 from categoria where id_categoria = @id_categoria)
-		throw 50008,'La categoria no existe',1;
-	select * from categoria where id_categoria = @id_categoria;
+	if not exists(select 1 from categoria where id_categoria = @id_categoria AND id_usuario = @id_usuario)
+		throw 50008,'La categoria no existe o no pertenece al usuario',1;
+	select * from categoria where id_categoria = @id_categoria AND id_usuario = @id_usuario;
 	
 END;
 
 
 CREATE OR ALTER PROCEDURE dbo.sp_listar_categorias
-    @tipo_categoria SMALLINT = NULL
+    @id_usuario INT,@tipo_categoria SMALLINT = NULL
 AS
 BEGIN
+	if not exists(select 1 from usuario where id_usuario = @id_usuario)
+		throw 50009,'El usuario no existe',1;
 	
 	if (@tipo_categoria is not null and @tipo_categoria not in (1,2,3))
-		throw 50009,'El tipo de categoria deberia ser 1,2 o 3',1;
+		throw 50010,'El tipo de categoria deberia ser 1,2 o 3',1;
 	
-	SELECT * from categoria where @tipo_categoria IS NULL or tipo_categoria = @tipo_categoria
+	SELECT * from categoria
+	where id_usuario = @id_usuario
+	  and (@tipo_categoria IS NULL or tipo_categoria = @tipo_categoria);
 END
 
 
@@ -1204,6 +1214,3 @@ BEGIN
       AND (@mes IS NULL OR t.mes = @mes)
     ORDER BY t.fecha DESC, t.id_transaccion DESC;
 END;
-
-
-

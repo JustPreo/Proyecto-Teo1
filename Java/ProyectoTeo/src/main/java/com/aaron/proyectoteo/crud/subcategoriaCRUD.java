@@ -9,6 +9,7 @@ import com.aaron.proyectoteo.categoria;
 import com.aaron.proyectoteo.subcategoria;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Comparator;
 
 /**
  *
@@ -91,12 +92,18 @@ public class subcategoriaCRUD {
 
         res.close();
         state.close();
+
+        lista.sort(Comparator
+            .comparing((subcategoria s) -> !s.es_default)
+            .thenComparing(s -> !s.estado)
+            .thenComparing(s -> s.nombre, String.CASE_INSENSITIVE_ORDER));
+
         return lista;
     }
 
-    public ArrayList<subcategoria> listarTodas() throws SQLException {
+    public ArrayList<subcategoria> listarTodas(int id_usuario) throws SQLException {
         categoriaCRUD cCrud = new categoriaCRUD();
-        ArrayList<categoria> categorias = cCrud.listar(null);
+        ArrayList<categoria> categorias = cCrud.listar(id_usuario, null);
         ArrayList<subcategoria> lista = new ArrayList<>();
         for (categoria c : categorias) {
             ArrayList<subcategoria> subs = listarPorCategoria(c.id_categoria);

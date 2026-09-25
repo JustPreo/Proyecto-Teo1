@@ -179,7 +179,7 @@ public class ReporteGastosCategoriaPanel extends JPanel {
 
     private List<ResumenCategoria> consultarDatos(YearMonth periodo) throws Exception {
         Map<Integer, String> nombresCategorias = new HashMap<>();
-        for (categoria categoria : categoriaCrud.listar(null)) {
+        for (categoria categoria : categoriaCrud.listar(usuarioActual.id_usuario, null)) {
             nombresCategorias.put(categoria.id_categoria, categoria.nombre_categoria);
         }
 

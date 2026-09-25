@@ -33,13 +33,20 @@ BEGIN TRY
     FROM dbo.usuario
     WHERE correo_electronico = 'said@gmail.com';
 
-    EXEC dbo.sp_insertar_categoria 'Salario Principal', 'Ingresos regulares del usuario', 1, 1, @creado_por;
-    EXEC dbo.sp_insertar_categoria 'Ingresos Extra', 'Bonos y trabajos adicionales', 1, 2, @creado_por;
-    EXEC dbo.sp_insertar_categoria 'Alimentacion', 'Compras y comidas', 2, 1, @creado_por;
-    EXEC dbo.sp_insertar_categoria 'Transporte', 'Movilidad del usuario', 2, 2, @creado_por;
-    EXEC dbo.sp_insertar_categoria 'Vivienda', 'Alquiler y mantenimiento', 2, 3, @creado_por;
-    EXEC dbo.sp_insertar_categoria 'Servicios', 'Servicios del hogar', 2, 4, @creado_por;
-    EXEC dbo.sp_insertar_categoria 'Fondo de Emergencia', 'Ahorro para emergencias', 3, 1, @creado_por;
+    IF NOT EXISTS (SELECT 1 FROM dbo.categoria WHERE id_usuario = @id_usuario AND nombre_categoria = 'Salario Principal' AND tipo_categoria = 1)
+        EXEC dbo.sp_insertar_categoria @id_usuario, 'Salario Principal', 'Ingresos regulares del usuario', 1, 1, @creado_por;
+    IF NOT EXISTS (SELECT 1 FROM dbo.categoria WHERE id_usuario = @id_usuario AND nombre_categoria = 'Ingresos Extra' AND tipo_categoria = 1)
+        EXEC dbo.sp_insertar_categoria @id_usuario, 'Ingresos Extra', 'Bonos y trabajos adicionales', 1, 2, @creado_por;
+    IF NOT EXISTS (SELECT 1 FROM dbo.categoria WHERE id_usuario = @id_usuario AND nombre_categoria = 'Alimentacion' AND tipo_categoria = 2)
+        EXEC dbo.sp_insertar_categoria @id_usuario, 'Alimentacion', 'Compras y comidas', 2, 1, @creado_por;
+    IF NOT EXISTS (SELECT 1 FROM dbo.categoria WHERE id_usuario = @id_usuario AND nombre_categoria = 'Transporte' AND tipo_categoria = 2)
+        EXEC dbo.sp_insertar_categoria @id_usuario, 'Transporte', 'Movilidad del usuario', 2, 2, @creado_por;
+    IF NOT EXISTS (SELECT 1 FROM dbo.categoria WHERE id_usuario = @id_usuario AND nombre_categoria = 'Vivienda' AND tipo_categoria = 2)
+        EXEC dbo.sp_insertar_categoria @id_usuario, 'Vivienda', 'Alquiler y mantenimiento', 2, 3, @creado_por;
+    IF NOT EXISTS (SELECT 1 FROM dbo.categoria WHERE id_usuario = @id_usuario AND nombre_categoria = 'Servicios' AND tipo_categoria = 2)
+        EXEC dbo.sp_insertar_categoria @id_usuario, 'Servicios', 'Servicios del hogar', 2, 4, @creado_por;
+    IF NOT EXISTS (SELECT 1 FROM dbo.categoria WHERE id_usuario = @id_usuario AND nombre_categoria = 'Fondo de Emergencia' AND tipo_categoria = 3)
+        EXEC dbo.sp_insertar_categoria @id_usuario, 'Fondo de Emergencia', 'Ahorro para emergencias', 3, 1, @creado_por;
 
     SELECT @id_cat_ingreso = id_categoria FROM dbo.categoria WHERE nombre_categoria = 'Salario Principal' AND tipo_categoria = 1;
     SELECT @id_cat_alimentacion = id_categoria FROM dbo.categoria WHERE nombre_categoria = 'Alimentacion' AND tipo_categoria = 2;
@@ -53,16 +60,26 @@ BEGIN TRY
     SELECT @id_salario = id_subcategoria FROM dbo.subcategoria WHERE id_categoria = @id_cat_ingreso AND es_default = 1;
     SELECT @id_emergencia = id_subcategoria FROM dbo.subcategoria WHERE id_categoria = @id_cat_ahorro AND es_default = 1;
 
-    EXEC dbo.sp_insertar_subcategoria @id_cat_ingreso, 'Salario Base', 'Salario mensual principal', @creado_por;
-    EXEC dbo.sp_insertar_subcategoria @id_extra, 'Bonificaciones', 'Bonos recibidos', @creado_por;
-    EXEC dbo.sp_insertar_subcategoria @id_cat_alimentacion, 'Supermercado', 'Compras del hogar', @creado_por;
-    EXEC dbo.sp_insertar_subcategoria @id_cat_alimentacion, 'Restaurantes', 'Comidas fuera de casa', @creado_por;
-    EXEC dbo.sp_insertar_subcategoria @id_cat_transporte, 'Combustible', 'Combustible del vehículo', @creado_por;
-    EXEC dbo.sp_insertar_subcategoria @id_cat_transporte, 'Transporte Publico', 'Buses y taxis', @creado_por;
-    EXEC dbo.sp_insertar_subcategoria @id_cat_vivienda, 'Alquiler', 'Alquiler mensual', @creado_por;
-    EXEC dbo.sp_insertar_subcategoria @id_cat_servicios, 'Electricidad', 'Servicio eléctrico', @creado_por;
-    EXEC dbo.sp_insertar_subcategoria @id_cat_servicios, 'Agua', 'Servicio de agua', @creado_por;
-    EXEC dbo.sp_insertar_subcategoria @id_cat_servicios, 'Internet', 'Servicio de internet', @creado_por;
+    IF NOT EXISTS (SELECT 1 FROM dbo.subcategoria WHERE id_categoria = @id_cat_ingreso AND nombre = 'Salario Base')
+        EXEC dbo.sp_insertar_subcategoria @id_cat_ingreso, 'Salario Base', 'Salario mensual principal', @creado_por;
+    IF NOT EXISTS (SELECT 1 FROM dbo.subcategoria WHERE id_categoria = @id_extra AND nombre = 'Bonificaciones')
+        EXEC dbo.sp_insertar_subcategoria @id_extra, 'Bonificaciones', 'Bonos recibidos', @creado_por;
+    IF NOT EXISTS (SELECT 1 FROM dbo.subcategoria WHERE id_categoria = @id_cat_alimentacion AND nombre = 'Supermercado')
+        EXEC dbo.sp_insertar_subcategoria @id_cat_alimentacion, 'Supermercado', 'Compras del hogar', @creado_por;
+    IF NOT EXISTS (SELECT 1 FROM dbo.subcategoria WHERE id_categoria = @id_cat_alimentacion AND nombre = 'Restaurantes')
+        EXEC dbo.sp_insertar_subcategoria @id_cat_alimentacion, 'Restaurantes', 'Comidas fuera de casa', @creado_por;
+    IF NOT EXISTS (SELECT 1 FROM dbo.subcategoria WHERE id_categoria = @id_cat_transporte AND nombre = 'Combustible')
+        EXEC dbo.sp_insertar_subcategoria @id_cat_transporte, 'Combustible', 'Combustible del vehículo', @creado_por;
+    IF NOT EXISTS (SELECT 1 FROM dbo.subcategoria WHERE id_categoria = @id_cat_transporte AND nombre = 'Transporte Publico')
+        EXEC dbo.sp_insertar_subcategoria @id_cat_transporte, 'Transporte Publico', 'Buses y taxis', @creado_por;
+    IF NOT EXISTS (SELECT 1 FROM dbo.subcategoria WHERE id_categoria = @id_cat_vivienda AND nombre = 'Alquiler')
+        EXEC dbo.sp_insertar_subcategoria @id_cat_vivienda, 'Alquiler', 'Alquiler mensual', @creado_por;
+    IF NOT EXISTS (SELECT 1 FROM dbo.subcategoria WHERE id_categoria = @id_cat_servicios AND nombre = 'Electricidad')
+        EXEC dbo.sp_insertar_subcategoria @id_cat_servicios, 'Electricidad', 'Servicio eléctrico', @creado_por;
+    IF NOT EXISTS (SELECT 1 FROM dbo.subcategoria WHERE id_categoria = @id_cat_servicios AND nombre = 'Agua')
+        EXEC dbo.sp_insertar_subcategoria @id_cat_servicios, 'Agua', 'Servicio de agua', @creado_por;
+    IF NOT EXISTS (SELECT 1 FROM dbo.subcategoria WHERE id_categoria = @id_cat_servicios AND nombre = 'Internet')
+        EXEC dbo.sp_insertar_subcategoria @id_cat_servicios, 'Internet', 'Servicio de internet', @creado_por;
 
     SELECT @id_salario = id_subcategoria FROM dbo.subcategoria WHERE id_categoria = @id_cat_ingreso AND nombre = 'Salario Base';
     SELECT @id_extra = id_subcategoria FROM dbo.subcategoria WHERE id_categoria = @id_extra AND nombre = 'Bonificaciones';

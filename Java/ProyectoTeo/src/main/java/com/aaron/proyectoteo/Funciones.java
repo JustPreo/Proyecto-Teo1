@@ -161,7 +161,7 @@ public final class Funciones {
     
     //8 fn_dias_hasta_vencimiento(id_obligacion) int
     
-    public static int fn_dias_hasta_vencimiento(int id_obligacion) throws SQLException{
+    public static Integer fn_dias_hasta_vencimiento(int id_obligacion) throws SQLException{
         
         Connection con = Conexion.obtenerConexion();
             
@@ -171,10 +171,11 @@ public final class Funciones {
             
           try (ResultSet res = state.executeQuery()) {
               if (res.next()){
-                    return res.getInt("dias");
+                    int dias = res.getInt("dias");
+                    return res.wasNull() ? null : dias;
               }
         }
-          return 0;
+          return null;
     }
     
     //9 fn_obtener_promedio_gasto_subcategoria(id_usuario, id_subcategoria, cantidad_meses)decimal

@@ -174,11 +174,11 @@ public class ReporteCumplimientoPanel extends JPanel {
 
     private List<Resumen> consultarDatos(YearMonth periodo) throws Exception {
         Map<Integer, categoria> categorias = new HashMap<>();
-        for (categoria c : categoriaCrud.listar(null)) {
+        for (categoria c : categoriaCrud.listar(usuarioActual.id_usuario, null)) {
             categorias.put(c.id_categoria, c);
         }
         Map<Integer, subcategoria> subcategorias = new HashMap<>();
-        for (subcategoria s : subcategoriaCrud.listarTodas()) {
+        for (subcategoria s : subcategoriaCrud.listarTodas(usuarioActual.id_usuario)) {
             subcategorias.put(s.id_subcategoria, s);
         }
 

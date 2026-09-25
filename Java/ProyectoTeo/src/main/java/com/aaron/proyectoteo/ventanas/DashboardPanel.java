@@ -216,12 +216,12 @@ public class DashboardPanel extends JPanel {
             obligacion_fijaCRUD oCrud = new obligacion_fijaCRUD();
             ArrayList<obligacion_fija> lista = oCrud.listarPorUsuario(currentUserId, true);
             for (obligacion_fija o : lista) {
-                int dias = Funciones.fn_dias_hasta_vencimiento(o.id_obligacion);
+                Integer dias = Funciones.fn_dias_hasta_vencimiento(o.id_obligacion);
                 modelObligaciones.addRow(new Object[]{
                     o.nombre,
                     String.format("L %.2f", o.monto_mensual),
                     "Día " + o.dia_vencimiento,
-                    dias >= 0 ? dias + " días" : "Vencido"
+                    dias == null ? "No iniciada" : (dias >= 0 ? dias + " días" : "Vencido")
                 });
             }
         } catch (Exception e) {
